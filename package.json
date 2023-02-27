@@ -24,7 +24,7 @@
 		"*.{js,ts,tsx}": [
 			"prettier --write",
 			"eslint",
-			"jest --bail --findRelatedTests"
+			"jest --bail --findRelatedTests --passWithNoTests"
 		]
 	},
 	"dependencies": {
@@ -75,9 +75,11 @@
 		"i18n-js": "3.9.2",
 		"js-base64": "3.6.1",
 		"js-sha256": "^0.9.0",
+		"js-yaml": "^4.1.0",
 		"lint-staged": "^11.1.0",
 		"lodash": "4.17.21",
 		"moment": "2.29.4",
+		"plist": "^3.0.6",
 		"pretty-bytes": "5.6.0",
 		"prop-types": "15.7.2",
 		"react": "17.0.2",

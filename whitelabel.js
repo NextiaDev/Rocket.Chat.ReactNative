@@ -13,6 +13,7 @@ const NOTIFICATION_SERVICE_INFO_PLIST_PATH = './ios/NotificationService/Info.pli
 // File paths for Android
 const GRADLE_PROPERTIES = './android/gradle.properties';
 const ANDROID_STRINGS = './android/app/src/experimental/res/values/strings.xml';
+const ANDROID_COLORS = './android/app/src/experimental/res/values/colors.xml';
 
 // Configure iOS
 const setupiOS = ({ config }) => {
@@ -58,6 +59,7 @@ const setupAndroid = async ({ config }) => {
 	// Read files
 	const gradleProperties = properties.createEditor(GRADLE_PROPERTIES);
 	const androidStrings = await xml2js.parseStringPromise(fs.readFileSync(ANDROID_STRINGS, 'utf-8'), { explicitArray: false });
+	const androidColors = await xml2js.parseStringPromise(fs.readFileSync(ANDROID_COLORS, 'utf-8'), { explicitArray: false });
 
 	// Replace properties
 	gradleProperties.set('APPLICATION_ID', config.android.application_id);
@@ -67,12 +69,17 @@ const setupAndroid = async ({ config }) => {
 	androidStrings.resources.string.find(s => s.$.name === 'app_name')._ = config.display_name;
 	androidStrings.resources.string.find(s => s.$.name === 'share_extension_name')._ = config.display_name;
 
+	// Replace colors
+	androidColors.resources.item.find(i => i.$.name === 'splashBackground')._ = config.splash_background_color;
+	androidColors.resources.item.find(i => i.$.name === 'notification_text')._ = config.android.notification_text_color;
+
+	// XML builder
+	const xmlBuilder = new xml2js.Builder();
+
 	// Save files
 	gradleProperties.save(GRADLE_PROPERTIES);
-
-	const xmlBuilder = new xml2js.Builder();
-	const newStringsXml = xmlBuilder.buildObject(androidStrings);
-	fs.writeFileSync(ANDROID_STRINGS, newStringsXml);
+	fs.writeFileSync(ANDROID_STRINGS, xmlBuilder.buildObject(androidStrings));
+	fs.writeFileSync(ANDROID_COLORS, xmlBuilder.buildObject(androidColors));
 };
 
 // Setup both platforms

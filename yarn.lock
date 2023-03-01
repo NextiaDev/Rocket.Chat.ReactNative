@@ -16812,6 +16812,13 @@ proper-lockfile@^3.0.2:
     retry "^0.12.0"
     signal-exit "^3.0.2"
 
+properties-parser@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/properties-parser/-/properties-parser-0.3.1.tgz#1316e9539ffbfd93845e369b211022abd478771a"
+  integrity sha512-AkSQxQAviJ89x4FIxOyHGfO3uund0gvYo7lfD0E+Gp7gFQKrTNgtoYQklu8EhrfHVZUzTwKGZx2r/KDSfnljcA==
+  dependencies:
+    string.prototype.codepointat "^0.2.0"
+
 property-expr@^2.0.4:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/property-expr/-/property-expr-2.0.5.tgz#278bdb15308ae16af3e3b9640024524f4dc02cb4"
@@ -19134,6 +19141,11 @@ string-width@^4.2.3:
     emoji-regex "^8.0.0"
     is-fullwidth-code-point "^3.0.0"
     strip-ansi "^6.0.1"
+
+string.prototype.codepointat@^0.2.0:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/string.prototype.codepointat/-/string.prototype.codepointat-0.2.1.tgz#004ad44c8afc727527b108cd462b4d971cd469bc"
+  integrity sha512-2cBVCj6I4IOvEnjgO/hWqXjqBGsY+zwPmHl12Srk9IXSZ56Jwwmy+66XO5Iut/oQVR7t5ihYdLB0GMa4alEUcg==
 
 "string.prototype.matchall@^4.0.0 || ^3.0.1", string.prototype.matchall@^4.0.7:
   version "4.0.7"

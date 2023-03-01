@@ -1,11 +1,15 @@
+// Import dependencies
 const fs = require('fs');
 const yaml = require('js-yaml');
 const plist = require('plist');
+const properties = require('properties-parser');
 
 // Files paths
 const ROCKET_CHAT_INFO_PLIST_PATH = './ios/RocketChatRN/Info.plist';
 const SHARE_ROCKET_CHAT_INFO_PLIST_PATH = './ios/ShareRocketChatRN/Info.plist';
 const NOTIFICATION_SERVICE_INFO_PLIST_PATH = './ios/NotificationService/Info.plist';
+
+const GRADLE_PROPERTIES = './android/gradle.properties';
 
 // Configure ios
 const setupiOS = ({ config }) => {
@@ -46,6 +50,20 @@ const setupiOS = ({ config }) => {
 	fs.writeFileSync(NOTIFICATION_SERVICE_INFO_PLIST_PATH, plist.build(notificationServiceInfo));
 };
 
+// Configure android
+const setupAndroid = ({ config }) => {
+	// Read gradle properties
+	const gradleProperties = properties.createEditor(GRADLE_PROPERTIES);
+
+	// Replace properties
+	gradleProperties.set('APPLICATION_ID', config.android.application_id);
+	gradleProperties.set('BugsnagAPIKey', config.bugsnag_api_key);
+
+	// Save files
+	gradleProperties.save(GRADLE_PROPERTIES);
+};
+
 // Setup both platforms
 const config = yaml.load(fs.readFileSync('./.whitelabel.yml', 'utf-8'));
 setupiOS({ config });
+setupAndroid({ config });

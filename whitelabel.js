@@ -5,6 +5,9 @@ const plist = require('plist');
 const properties = require('properties-parser');
 const xml2js = require('xml2js');
 
+// General paths
+const APP_JSON = './app.json';
+
 // File paths for iOS
 const ROCKET_CHAT_INFO_PLIST_PATH = './ios/RocketChatRN/Info.plist';
 const SHARE_ROCKET_CHAT_INFO_PLIST_PATH = './ios/ShareRocketChatRN/Info.plist';
@@ -14,6 +17,23 @@ const NOTIFICATION_SERVICE_INFO_PLIST_PATH = './ios/NotificationService/Info.pli
 const GRADLE_PROPERTIES = './android/gradle.properties';
 const ANDROID_STRINGS = './android/app/src/experimental/res/values/strings.xml';
 const ANDROID_COLORS = './android/app/src/experimental/res/values/colors.xml';
+
+// Configure app.json
+const configureAppJson = ({ config }) => {
+	// Read file
+	const appJson = JSON.parse(fs.readFileSync(APP_JSON));
+
+	// Update details
+	appJson.name = config.display_name;
+	appJson.displayName = config.display_name;
+	appJson.share = `Share ${config.display_name}`;
+	appJson.server = config.server;
+	appJson.appGroup = `group.ios.chat.${config.company_name}`;
+	appJson.appStoreID = config.appStoreID;
+
+	// Save changes
+	fs.writeFileSync(APP_JSON, appJson);
+};
 
 // Configure iOS
 const setupiOS = ({ config }) => {
@@ -84,5 +104,6 @@ const setupAndroid = async ({ config }) => {
 
 // Setup both platforms
 const config = yaml.load(fs.readFileSync('./.whitelabel.yml', 'utf-8'));
+configureAppJson({ config });
 setupiOS({ config });
 setupAndroid({ config });

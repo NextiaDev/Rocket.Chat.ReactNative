@@ -78,3 +78,4 @@ e2e/e2e_account.ts
 .whitelabel.yml
 .env
 ios/tmp.xcconfig
+app.json

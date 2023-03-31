@@ -1,5 +1,4 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Linking } from 'react-native';
 import { Base64 } from 'js-base64';
 
 import { Services } from '../../lib/services';
@@ -52,7 +51,7 @@ export const onPressGoogle = ({ service, server }: IServiceLogin) => {
 	const scope = 'email';
 	const state = getOAuthState('redirect');
 	const params = `?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&state=${state}&response_type=code`;
-	Linking.openURL(`${endpoint}${params}`);
+	openOAuth({ url: `${endpoint}${params}` });
 };
 
 export const onPressLinkedin = ({ service, server }: IServiceLogin) => {

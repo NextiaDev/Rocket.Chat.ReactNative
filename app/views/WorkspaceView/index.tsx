@@ -42,8 +42,7 @@ class WorkspaceView extends React.Component<IWorkSpaceProp, any> {
 		const { registrationForm, inviteLinkToken, Accounts_iframe_enabled } = this.props;
 		return (
 			!Accounts_iframe_enabled &&
-			(registrationForm === 'Public' || (registrationForm === 'Secret URL' && inviteLinkToken?.length)) &&
-			false
+			(registrationForm === 'Public' || (registrationForm === 'Secret URL' && inviteLinkToken?.length))
 		);
 	}
 

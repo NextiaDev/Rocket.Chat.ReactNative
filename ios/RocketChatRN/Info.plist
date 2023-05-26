@@ -28,10 +28,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>rocketchat</string>
+			<string>nextia</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>rocketchat</string>
+				<string>nextia</string>
 			</array>
 		</dict>
 	</array>

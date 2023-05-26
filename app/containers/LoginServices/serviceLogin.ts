@@ -49,7 +49,7 @@ export const onPressGoogle = ({ service, server }: IServiceLogin) => {
 	const endpoint = 'https://accounts.google.com/o/oauth2/auth';
 	const redirect_uri = `${server}/_oauth/google?close`;
 	const scope = 'email';
-	const state = getOAuthState('redirect');
+	const state = getOAuthState();
 	const params = `?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&state=${state}&response_type=code`;
 	openOAuth({ url: `${endpoint}${params}` });
 };
@@ -147,7 +147,7 @@ const getOAuthState = (loginStyle: TLoginStyle = 'popup') => {
 	if (loginStyle === 'redirect') {
 		obj = {
 			...obj,
-			redirectUrl: 'rocketchat://auth'
+			redirectUrl: 'nextia://auth'
 		};
 	}
 	return Base64.encodeURI(JSON.stringify(obj));

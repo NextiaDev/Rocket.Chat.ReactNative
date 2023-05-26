@@ -9,7 +9,7 @@ const DEEPLINK_METHODS = { AUTH: 'auth', ROOM: 'room' };
 let amp = '&';
 
 const getDeepLink = (method: string, server: string, params?: string) => {
-	const deeplink = `rocketchat://${method}?host=${server.replace(/^(http:\/\/|https:\/\/)/, '')}${amp}${params}`;
+	const deeplink = `nextia://${method}?host=${server.replace(/^(http:\/\/|https:\/\/)/, '')}${amp}${params}`;
 	console.log(`Deeplinking to: ${deeplink}`);
 	return deeplink;
 };

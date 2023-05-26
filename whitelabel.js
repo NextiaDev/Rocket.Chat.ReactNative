@@ -32,7 +32,7 @@ const configureAppJson = ({ config }) => {
 	appJson.appStoreID = config.appStoreID;
 
 	// Save changes
-	fs.writeFileSync(APP_JSON, appJson);
+	fs.writeFileSync(APP_JSON, JSON.stringify(appJson));
 };
 
 // Configure iOS

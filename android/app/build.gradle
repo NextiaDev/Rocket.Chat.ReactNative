@@ -3,6 +3,7 @@ def isFoss = taskRequests.contains("foss")
 
 apply plugin: "com.android.application"
 apply plugin: 'kotlin-android'
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 if (!isFoss) {
     apply plugin: 'com.google.firebase.crashlytics'

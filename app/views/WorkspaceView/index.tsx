@@ -61,12 +61,12 @@ class WorkspaceView extends React.Component<IWorkSpaceProp, any> {
 	};
 
 	renderRegisterDisabled = () => {
-		const { Accounts_iframe_enabled, registrationText, theme } = this.props;
+		const { Accounts_iframe_enabled } = this.props;
 		if (Accounts_iframe_enabled) {
 			return null;
 		}
 
-		return <Text style={[styles.registrationText, { color: themes[theme].auxiliaryText }]}>{registrationText}</Text>;
+		return <></>;
 	};
 
 	render() {

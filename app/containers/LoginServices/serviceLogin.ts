@@ -1,5 +1,4 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Linking } from 'react-native';
 import { Base64 } from 'js-base64';
 
 import { Services } from '../../lib/services';
@@ -10,7 +9,7 @@ import { events, logEvent } from '../../lib/methods/helpers/log';
 
 type TLoginStyle = 'popup' | 'redirect';
 
-export const onPressFacebook = ({ service, server }: IServiceLogin) => {
+export const onPressFacebook = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_FACEBOOK);
 	const { clientId } = service;
 	const endpoint = 'https://m.facebook.com/v2.9/dialog/oauth';
@@ -21,7 +20,7 @@ export const onPressFacebook = ({ service, server }: IServiceLogin) => {
 	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressGithub = ({ service, server }: IServiceLogin) => {
+export const onPressGithub = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_GITHUB);
 	const { clientId } = service;
 	const endpoint = `https://github.com/login?client_id=${clientId}&return_to=${encodeURIComponent('/login/oauth/authorize')}`;
@@ -32,7 +31,7 @@ export const onPressGithub = ({ service, server }: IServiceLogin) => {
 	openOAuth({ url: `${endpoint}${encodeURIComponent(params)}` });
 };
 
-export const onPressGitlab = ({ service, server, urlOption }: IServiceLogin) => {
+export const onPressGitlab = ({ service, server, urlOption }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_GITLAB);
 	const { clientId } = service;
 	const baseURL = urlOption ? urlOption.trim().replace(/\/*$/, '') : 'https://gitlab.com';
@@ -44,18 +43,18 @@ export const onPressGitlab = ({ service, server, urlOption }: IServiceLogin) => 
 	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressGoogle = ({ service, server }: IServiceLogin) => {
+export const onPressGoogle = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_GOOGLE);
 	const { clientId } = service;
 	const endpoint = 'https://accounts.google.com/o/oauth2/auth';
 	const redirect_uri = `${server}/_oauth/google?close`;
 	const scope = 'email';
-	const state = getOAuthState('redirect');
+	const state = getOAuthState();
 	const params = `?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&state=${state}&response_type=code`;
-	Linking.openURL(`${endpoint}${params}`);
+	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressLinkedin = ({ service, server }: IServiceLogin) => {
+export const onPressLinkedin = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_LINKEDIN);
 	const { clientId } = service;
 	const endpoint = 'https://www.linkedin.com/oauth/v2/authorization';
@@ -66,7 +65,7 @@ export const onPressLinkedin = ({ service, server }: IServiceLogin) => {
 	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressMeteor = ({ service, server }: IServiceLogin) => {
+export const onPressMeteor = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_METEOR);
 	const { clientId } = service;
 	const endpoint = 'https://www.meteor.com/oauth2/authorize';
@@ -76,14 +75,14 @@ export const onPressMeteor = ({ service, server }: IServiceLogin) => {
 	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressTwitter = ({ server }: IServiceLogin) => {
+export const onPressTwitter = ({ server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_TWITTER);
 	const state = getOAuthState();
 	const url = `${server}/_oauth/twitter/?requestTokenAndRedirect=true&state=${state}`;
 	openOAuth({ url });
 };
 
-export const onPressWordpress = ({ service, server }: IServiceLogin) => {
+export const onPressWordpress = ({ service, server }: IServiceLogin): void => {
 	logEvent(events.ENTER_WITH_WORDPRESS);
 	const { clientId, serverURL } = service;
 	const endpoint = `${serverURL}/oauth/authorize`;
@@ -94,7 +93,7 @@ export const onPressWordpress = ({ service, server }: IServiceLogin) => {
 	openOAuth({ url: `${endpoint}${params}` });
 };
 
-export const onPressCustomOAuth = ({ loginService, server }: { loginService: IItemService; server: string }) => {
+export const onPressCustomOAuth = ({ loginService, server }: { loginService: IItemService; server: string }): void => {
 	logEvent(events.ENTER_WITH_CUSTOM_OAUTH);
 	const { serverURL, authorizePath, clientId, scope, service } = loginService;
 	const redirectUri = `${server}/_oauth/${service}`;
@@ -106,7 +105,7 @@ export const onPressCustomOAuth = ({ loginService, server }: { loginService: IIt
 	openOAuth({ url });
 };
 
-export const onPressSaml = ({ loginService, server }: { loginService: IItemService; server: string }) => {
+export const onPressSaml = ({ loginService, server }: { loginService: IItemService; server: string }): void => {
 	logEvent(events.ENTER_WITH_SAML);
 	const { clientConfig } = loginService;
 	const { provider } = clientConfig;
@@ -115,14 +114,14 @@ export const onPressSaml = ({ loginService, server }: { loginService: IItemServi
 	openOAuth({ url, ssoToken, authType: 'saml' });
 };
 
-export const onPressCas = ({ casLoginUrl, server }: { casLoginUrl: string; server: string }) => {
+export const onPressCas = ({ casLoginUrl, server }: { casLoginUrl: string; server: string }): void => {
 	logEvent(events.ENTER_WITH_CAS);
 	const ssoToken = random(17);
 	const url = `${casLoginUrl}?service=${server}/_cas/${ssoToken}`;
 	openOAuth({ url, ssoToken, authType: 'cas' });
 };
 
-export const onPressAppleLogin = async () => {
+export const onPressAppleLogin = async (): Promise<void> => {
 	logEvent(events.ENTER_WITH_APPLE);
 	try {
 		const { fullName, email, identityToken } = await AppleAuthentication.signInAsync({
@@ -148,7 +147,7 @@ const getOAuthState = (loginStyle: TLoginStyle = 'popup') => {
 	if (loginStyle === 'redirect') {
 		obj = {
 			...obj,
-			redirectUrl: 'rocketchat://auth'
+			redirectUrl: 'hybridge://auth'
 		};
 	}
 	return Base64.encodeURI(JSON.stringify(obj));

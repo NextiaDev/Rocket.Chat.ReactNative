@@ -1,0 +1,12 @@
+//
+//  Config.xcconfig
+//  RocketChatRN
+//
+//  Created by Iván Martínez on 01/06/23.
+//  Copyright © 2023 Facebook. All rights reserved.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+#include? "tmp.xcconfig"

@@ -8,6 +8,7 @@ import { Encryption } from '../encryption';
 import { E2EType, IMessage, IUser, TMessageModel } from '../../definitions';
 import sdk from '../services/sdk';
 import { E2E_MESSAGE_TYPE, E2E_STATUS, messagesStatus } from '../constants';
+import { saveDraftMessage } from './draftMessage';
 
 const changeMessageStatus = async (id: string, status: number, tmid?: string, message?: IMessage) => {
 	const db = database.active;
@@ -143,6 +144,7 @@ export async function sendMessage(
 							tm.status = messagesStatus.SENT; // Original message was sent already
 							tm.u = tMessageRecord.u;
 							tm.t = message.t;
+							tm.attachments = tMessageRecord.attachments;
 							if (message.t === E2E_MESSAGE_TYPE) {
 								tm.e2e = E2E_STATUS.DONE as E2EType;
 							}
@@ -230,6 +232,9 @@ export async function sendMessage(
 		}
 
 		await sendMessageCall(message);
+		// clear draft message when message is sent and app is in background or closed
+		// do not affect the user experience when the app is in the foreground because the hook useAutoSaveDraft will handle it
+		saveDraftMessage({ rid, tmid, draftMessage: '' });
 	} catch (e) {
 		log(e);
 	}

@@ -33,7 +33,7 @@ const HeaderExample = ({ left, right, colors, title = '' }: IHeader) => (
 		title={title}
 		headerLeft={left}
 		headerRight={right}
-		headerBackground={() => <HeaderBackground style={{ backgroundColor: colors?.headerBackground }} />}
+		headerBackground={() => <HeaderBackground style={{ backgroundColor: colors?.surfaceNeutral }} />}
 	/>
 );
 
@@ -107,7 +107,7 @@ export const Badge = () => (
 					<HeaderButton.Item iconName='threads' badge={() => <HeaderButton.BadgeUnread tunread={[1]} />} />
 					<HeaderButton.Item iconName='threads' badge={() => <HeaderButton.BadgeUnread tunread={[1]} tunreadUser={[1]} />} />
 					<HeaderButton.Item iconName='threads' badge={() => <HeaderButton.BadgeUnread tunread={[1]} tunreadGroup={[1]} />} />
-					<HeaderButton.Drawer badge={() => <HeaderButton.BadgeWarn />} />
+					<HeaderButton.Drawer badge={() => <HeaderButton.BadgeWarn color='red' />} />
 				</HeaderButton.Container>
 			)}
 		/>
@@ -120,7 +120,7 @@ const ThemeStory = ({ theme }: { theme: TSupportedThemes }) => (
 			<HeaderExample
 				left={() => (
 					<HeaderButton.Container left>
-						<HeaderButton.Drawer badge={() => <HeaderButton.BadgeWarn />} />
+						<HeaderButton.Drawer badge={() => <HeaderButton.BadgeWarn color={colors[theme].buttonBackgroundDangerDefault} />} />
 						<HeaderButton.Item iconName='threads' />
 					</HeaderButton.Container>
 				)}

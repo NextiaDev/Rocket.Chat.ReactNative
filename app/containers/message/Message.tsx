@@ -22,6 +22,19 @@ import { useTheme } from '../../theme';
 import RightIcons from './Components/RightIcons';
 
 const MessageInner = React.memo((props: IMessageInner) => {
+	if (props.isPreview) {
+		return (
+			<>
+				<User {...props} />
+				<>
+					<Content {...props} />
+					<Attachments {...props} />
+				</>
+				<Urls {...props} />
+			</>
+		);
+	}
+
 	if (props.type === 'discussion-created') {
 		return (
 			<>
@@ -78,6 +91,11 @@ const Message = React.memo((props: IMessage) => {
 					<MessageAvatar small {...props} />
 					<View style={[styles.messageContent, props.isHeader && styles.messageContentWithHeader]}>
 						<Content {...props} />
+						{props.isInfo && props.type === 'message_pinned' ? (
+							<View pointerEvents='none'>
+								<Attachments {...props} />
+							</View>
+						) : null}
 					</View>
 				</View>
 			</View>
@@ -99,6 +117,7 @@ const Message = React.memo((props: IMessage) => {
 						hasError={props.hasError}
 						isReadReceiptEnabled={props.isReadReceiptEnabled}
 						unread={props.unread}
+						isTranslated={props.isTranslated}
 					/>
 				) : null}
 			</View>
@@ -110,6 +129,14 @@ Message.displayName = 'Message';
 const MessageTouchable = React.memo((props: IMessageTouchable & IMessage) => {
 	const { onPress, onLongPress } = useContext(MessageContext);
 	const { theme } = useTheme();
+
+	let backgroundColor = undefined;
+	if (props.isBeingEdited) {
+		backgroundColor = themes[theme].statusBackgroundWarning2;
+	}
+	if (props.highlighted) {
+		backgroundColor = themes[theme].surfaceNeutral;
+	}
 
 	if (props.hasError) {
 		return (
@@ -124,7 +151,7 @@ const MessageTouchable = React.memo((props: IMessageTouchable & IMessage) => {
 			onLongPress={onLongPress}
 			onPress={onPress}
 			disabled={(props.isInfo && !props.isThreadReply) || props.archived || props.isTemp || props.type === 'jitsi_call_started'}
-			style={{ backgroundColor: props.highlighted ? themes[theme].headerBackground : undefined }}
+			style={{ backgroundColor }}
 		>
 			<View>
 				<Message {...props} />

@@ -4,6 +4,7 @@ import Navigation from '../../navigation/appNavigation';
 import { IOmnichannelRoom, SubscriptionType, IVisitor, TSubscriptionModel, ISubscription } from '../../../definitions';
 import { getRoomTitle, getUidDirectMessage } from './helpers';
 import { Services } from '../../services';
+import { emitErrorCreateDirectMessage } from './emitErrorCreateDirectMessage';
 
 interface IGoRoomItem {
 	search?: boolean; // comes from spotlight
@@ -111,10 +112,12 @@ export const goRoom = async ({
 					...props
 				});
 			}
-		} catch {
-			// Do nothing
+		} catch (e: any) {
+			emitErrorCreateDirectMessage(e?.data);
 		}
 	}
 
 	return navigate({ item, isMasterDetail, popToRoot, ...props });
 };
+
+export const navigateToRoom = navigate;

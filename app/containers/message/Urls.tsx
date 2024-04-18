@@ -14,6 +14,7 @@ import EventEmitter from '../../lib/methods/helpers/events';
 import I18n from '../../i18n';
 import MessageContext from './Context';
 import { IUrl } from '../../definitions';
+import { DEFAULT_MESSAGE_HEIGHT } from './utils';
 
 const styles = StyleSheet.create({
 	button: {
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
 	},
 	image: {
 		width: '100%',
-		height: 150,
+		height: DEFAULT_MESSAGE_HEIGHT,
 		borderTopLeftRadius: 4,
 		borderTopRightRadius: 4
 	},
@@ -54,7 +55,8 @@ const styles = StyleSheet.create({
 	},
 	loading: {
 		height: 0,
-		borderWidth: 0
+		borderWidth: 0,
+		marginTop: 0
 	}
 });
 
@@ -64,12 +66,12 @@ const UrlContent = React.memo(
 		return (
 			<View style={styles.textContainer}>
 				{title ? (
-					<Text style={[styles.title, { color: colors.tintColor }]} numberOfLines={2}>
+					<Text style={[styles.title, { color: colors.badgeBackgroundLevel2 }]} numberOfLines={2}>
 						{title}
 					</Text>
 				) : null}
 				{description ? (
-					<Text style={[styles.description, { color: colors.auxiliaryText }]} numberOfLines={2}>
+					<Text style={[styles.description, { color: colors.fontSecondaryInfo }]} numberOfLines={2}>
 						{description}
 					</Text>
 				) : null}
@@ -121,12 +123,12 @@ const Url = React.memo(
 					index > 0 && styles.marginTop,
 					styles.container,
 					{
-						backgroundColor: themes[theme].chatComponentBackground,
-						borderColor: themes[theme].borderColor
+						backgroundColor: themes[theme].surfaceTint,
+						borderColor: themes[theme].strokeLight
 					},
 					imageLoadedState === 'loading' && styles.loading
 				]}
-				background={Touchable.Ripple(themes[theme].bannerBackground)}
+				background={Touchable.Ripple(themes[theme].surfaceNeutral)}
 			>
 				<>
 					{image ? (

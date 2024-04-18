@@ -10,12 +10,19 @@ import {
 	TTextMatcher,
 	expectValidRegisterOrRetry
 } from '../../helpers/app';
-import { createRandomRoom, createRandomUser, login, sendMessage } from '../../helpers/data_setup';
+import {
+	IDeleteCreateUser,
+	createRandomRoom,
+	createRandomUser,
+	deleteCreatedUsers,
+	login,
+	sendMessage
+} from '../../helpers/data_setup';
 import random from '../../helpers/random';
 
 const DEEPLINK_METHODS = { AUTH: 'auth', ROOM: 'room' };
 
-let amp = '&';
+const amp = '&';
 
 const getDeepLink = (method: string, server: string, params?: string) => {
 	const deeplink = `rocketchat://${method}?host=${server.replace(/^(http:\/\/|https:\/\/)/, '')}${amp}${params}`;
@@ -32,18 +39,23 @@ describe('Deep linking', () => {
 	let room: string;
 	const threadMessage = `to-thread-${random()}`;
 
+	const deleteUsersAfterAll: IDeleteCreateUser[] = [];
+
 	beforeAll(async () => {
 		const user = await createRandomUser();
 		({ _id: rid, name: room } = await createRandomRoom(user, 'p'));
 		const loginResult = await login(user.username, user.password);
 		({ userId, authToken } = loginResult);
 		const deviceType = device.getPlatform();
-		amp = deviceType === 'android' ? '\\&' : '&';
 		({ textMatcher } = platformTypes[deviceType]);
 		// create a thread with api
 		const result = await sendMessage(user, room, threadMessage);
 		threadId = result.message._id;
 		await sendMessage(user, result.message.rid, random(), threadId);
+	});
+
+	afterAll(async () => {
+		await deleteCreatedUsers(deleteUsersAfterAll);
 	});
 
 	describe('Authentication', () => {
@@ -53,7 +65,7 @@ describe('Deep linking', () => {
 				delete: true,
 				url: getDeepLink(DEEPLINK_METHODS.AUTH, data.server, `userId=123${amp}token=abc`)
 			});
-			await waitFor(element(by[textMatcher]("You've been logged out by the server. Please log in again.")))
+			await waitFor(element(by[textMatcher]("You've been logged out by the workspace. Please log in again.")))
 				.toExist()
 				.withTimeout(30000); // TODO: we need to improve this message
 		});
@@ -91,6 +103,8 @@ describe('Deep linking', () => {
 			await element(by.id('register-view-password')).replaceText(randomUser.password);
 			await element(by.id('register-view-password')).tapReturnKey();
 			await expectValidRegisterOrRetry(device.getPlatform());
+			deleteUsersAfterAll.push({ server: data.alternateServer, username: randomUser.username });
+
 			await authAndNavigate();
 		});
 	});

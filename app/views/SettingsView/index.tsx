@@ -21,7 +21,7 @@ import { APP_STORE_LINK, FDROID_MARKET_LINK, isFDroidBuild, LICENSE_LINK, PLAY_M
 import database from '../../lib/database';
 import { useAppSelector } from '../../lib/hooks';
 import { clearCache } from '../../lib/methods';
-import { deleteAllAudioFiles } from '../../lib/methods/audioFile';
+import { deleteMediaFiles } from '../../lib/methods/handleMediaDownload';
 import { getDeviceModel, getReadableVersion, isAndroid } from '../../lib/methods/helpers';
 import EventEmitter from '../../lib/methods/helpers/events';
 import { showConfirmationAlert, showErrorAlert } from '../../lib/methods/helpers/info';
@@ -99,7 +99,7 @@ const SettingsView = (): React.ReactElement => {
 			confirmationText: I18n.t('Clear'),
 			onPress: async () => {
 				dispatch(appStart({ root: RootEnum.ROOT_LOADING, text: I18n.t('Clear_cache_loading') }));
-				await deleteAllAudioFiles(server);
+				await deleteMediaFiles(server);
 				await clearCache({ server });
 				await FastImage.clearMemoryCache();
 				await FastImage.clearDiskCache();
@@ -225,6 +225,13 @@ const SettingsView = (): React.ReactElement => {
 					/>
 					<List.Separator />
 					<List.Item
+						title='Media_auto_download'
+						showActionIndicator
+						onPress={() => navigateToScreen('MediaAutoDownloadView')}
+						testID='settings-view-media-auto-download'
+					/>
+					<List.Separator />
+					<List.Item
 						title='Security_and_privacy'
 						showActionIndicator
 						onPress={() => navigateToScreen('SecurityPrivacyView')}
@@ -262,7 +269,7 @@ const SettingsView = (): React.ReactElement => {
 						testID='settings-view-clear-cache'
 						onPress={handleClearCache}
 						showActionIndicator
-						color={colors.dangerColor}
+						color={colors.buttonBackgroundDangerDefault}
 					/>
 					<List.Separator />
 					<List.Item
@@ -270,7 +277,7 @@ const SettingsView = (): React.ReactElement => {
 						testID='settings-logout'
 						onPress={handleLogout}
 						showActionIndicator
-						color={colors.dangerColor}
+						color={colors.buttonBackgroundDangerDefault}
 					/>
 					<List.Separator />
 				</List.Section>

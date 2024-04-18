@@ -109,12 +109,12 @@ export const ImageViewer = ({ uri = '', imageComponentType, width, height, ...pr
 
 	const gesture = Gesture.Simultaneous(pinchGesture, panGesture, doubleTapGesture);
 
-	const Component = ImageComponent(imageComponentType);
+	const Component = ImageComponent({ type: imageComponentType, uri });
 
 	const { colors } = useTheme();
 
 	return (
-		<View style={[styles.flex, { width, height, backgroundColor: colors.previewBackground }]}>
+		<View style={[styles.flex, { width, height, backgroundColor: colors.surfaceRoom }]}>
 			<GestureDetector gesture={gesture}>
 				<Animated.View onLayout={onLayout} style={[styles.flex, style]}>
 					<Component

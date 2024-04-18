@@ -1,22 +1,26 @@
 import { NavigatorScreenParams } from '@react-navigation/core';
-import { TextInputProps } from 'react-native';
 
-import { IItem } from '../views/TeamChannelsView';
-import { IOptionsField } from '../views/NotificationPreferencesView/options';
-import { IServer } from '../definitions/IServer';
-import { IAttachment } from '../definitions/IAttachment';
-import { IMessage, TAnyMessageModel, TMessageModel } from '../definitions/IMessage';
-import { ISubscription, SubscriptionType, TSubscriptionModel } from '../definitions/ISubscription';
-import { ICannedResponse } from '../definitions/ICannedResponse';
-import { TDataSelect } from '../definitions/IDataSelect';
+import {
+	IAttachment,
+	ICannedResponse,
+	ILivechatDepartment,
+	ILivechatTag,
+	IMessage,
+	IServer,
+	ISubscription,
+	SubscriptionType,
+	TAnyMessageModel,
+	TChangeAvatarViewContext,
+	TDataSelect,
+	TMessageAction,
+	TSubscriptionModel,
+	TThreadModel
+} from '../definitions';
 import { ModalStackParamList } from './MasterDetailStack/types';
-import { TThreadModel } from '../definitions';
-import { ILivechatDepartment } from '../definitions/ILivechatDepartment';
-import { ILivechatTag } from '../definitions/ILivechatTag';
-import { TChangeAvatarViewContext } from '../definitions/TChangeAvatarViewContext';
+import { TNavigation } from './stackType';
 
 export type ChatsStackParamList = {
-	ModalStackNavigator: NavigatorScreenParams<ModalStackParamList>;
+	ModalStackNavigator: NavigatorScreenParams<ModalStackParamList & TNavigation>;
 	E2ESaveYourPasswordStackNavigator: NavigatorScreenParams<E2ESaveYourPasswordStackParamList>;
 	E2EEnterYourPasswordStackNavigator: NavigatorScreenParams<E2EEnterYourPasswordStackParamList>;
 	SettingsView: any;
@@ -28,7 +32,7 @@ export type ChatsStackParamList = {
 				rid: string;
 				t: SubscriptionType;
 				tmid?: string;
-				message?: TMessageModel;
+				messageId?: string;
 				name?: string;
 				fname?: string;
 				prid?: string;
@@ -38,7 +42,6 @@ export type ChatsStackParamList = {
 				roomUserId?: string | null;
 				usedCannedResponse?: string;
 				status?: string;
-				replyInDM?: TAnyMessageModel;
 		  }
 		| undefined; // Navigates back to RoomView already on stack
 	RoomActionsView: {
@@ -63,6 +66,7 @@ export type ChatsStackParamList = {
 		isSearch?: boolean;
 		onSearch?: (text: string) => Promise<TDataSelect[] | any>;
 		isRadio?: boolean;
+		fontHint?: string;
 	};
 	RoomInfoView: {
 		room?: ISubscription;
@@ -71,6 +75,7 @@ export type ChatsStackParamList = {
 		t: SubscriptionType;
 		showCloseModal?: boolean;
 		fromRid?: string;
+		itsMe?: boolean;
 	};
 	RoomInfoEditView: {
 		rid: string;
@@ -118,9 +123,7 @@ export type ChatsStackParamList = {
 		rid: string;
 		room: TSubscriptionModel;
 	};
-	ForwardLivechatView: {
-		rid: string;
-	};
+	PushTroubleshootView: undefined;
 	CloseLivechatView: {
 		rid: string;
 		departmentId?: string;
@@ -130,16 +133,6 @@ export type ChatsStackParamList = {
 	LivechatEditView: {
 		room: ISubscription;
 		roomUser: any; // TODO: Change
-	};
-	PickerView: {
-		title: string;
-		data: IOptionsField[];
-		value?: string;
-		onSearch?: (text?: string) => Promise<any>;
-		onEndReached?: (text: string, offset?: number) => Promise<any>;
-		total?: number;
-		goBack?: boolean;
-		onChangeValue: Function;
 	};
 	ThreadMessagesView: {
 		rid: string;
@@ -154,12 +147,10 @@ export type ChatsStackParamList = {
 		teamId?: string;
 	};
 	AddChannelTeamView: {
-		teamId?: string;
-		teamChannels: IItem[];
+		teamId: string;
 	};
 	AddExistingChannelView: {
-		teamId?: string;
-		teamChannels: IItem[];
+		teamId: string;
 	};
 	MarkdownTableView: {
 		renderRows: (drawExtraBorders?: boolean) => JSX.Element;
@@ -188,20 +179,18 @@ export type ChatsStackParamList = {
 		room?: ISubscription;
 		t?: SubscriptionType;
 	};
+	ReportUserView: {
+		username: string;
+		userId: string;
+		name: string;
+	};
 };
 
 export type ProfileStackParamList = {
 	ProfileView: undefined;
 	UserPreferencesView: undefined;
 	UserNotificationPrefView: undefined;
-	PickerView: {
-		title: string;
-		data: IOptionsField[];
-		value: any; // TODO: Change
-		onChangeText?: TextInputProps['onChangeText'];
-		goBack?: Function;
-		onChangeValue: Function;
-	};
+	PushTroubleshootView: undefined;
 	ChangeAvatarView: {
 		context: TChangeAvatarViewContext;
 		titleHeader?: string;
@@ -220,6 +209,8 @@ export type SettingsStackParamList = {
 	ScreenLockConfigView: undefined;
 	ProfileView: undefined;
 	DisplayPrefsView: undefined;
+	MediaAutoDownloadView: undefined;
+	PushTroubleshootView: undefined;
 };
 
 export type AdminPanelStackParamList = {
@@ -256,6 +247,9 @@ export type NewMessageStackParamList = {
 		message: IMessage;
 		showCloseModal: boolean;
 	};
+	ForwardMessageView: {
+		message: TAnyMessageModel;
+	};
 };
 
 export type E2ESaveYourPasswordStackParamList = {
@@ -274,9 +268,6 @@ export type InsideStackParamList = {
 	NewMessageStackNavigator: NavigatorScreenParams<NewMessageStackParamList>;
 	E2ESaveYourPasswordStackNavigator: NavigatorScreenParams<E2ESaveYourPasswordStackParamList>;
 	E2EEnterYourPasswordStackNavigator: NavigatorScreenParams<E2EEnterYourPasswordStackParamList>;
-	AttachmentView: {
-		attachment: IAttachment;
-	};
 	StatusView: undefined;
 	ShareView: {
 		attachments: IAttachment[];
@@ -286,9 +277,9 @@ export type InsideStackParamList = {
 		text: string;
 		room: TSubscriptionModel;
 		thread: TThreadModel;
-		replying?: boolean;
-		replyingMessage?: IMessage;
-		closeReply?: Function;
+		action: TMessageAction;
+		finishShareView: (text?: string, selectedMessages?: string[]) => void | undefined;
+		startShareView: () => { text: string; selectedMessages: string[] };
 	};
 	ModalBlockView: {
 		data: any; // TODO: Change;

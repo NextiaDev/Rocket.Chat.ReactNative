@@ -1,7 +1,9 @@
+import React from 'react';
 import { call, cancel, delay, fork, put, race, select, take, takeLatest } from 'redux-saga/effects';
 import { sanitizedRaw } from '@nozbe/watermelondb/RawRecord';
 import { Q } from '@nozbe/watermelondb';
 
+import moment from 'moment';
 import * as types from '../actions/actionsTypes';
 import { appStart } from '../actions/app';
 import { selectServerRequest, serverFinishAdd, serverRequest } from '../actions/server';
@@ -15,6 +17,7 @@ import { inviteLinksRequest } from '../actions/inviteLinks';
 import { showErrorAlert } from '../lib/methods/helpers/info';
 import { localAuthenticate } from '../lib/methods/helpers/localAuthentication';
 import { encryptionInit, encryptionStop } from '../actions/encryption';
+import { initTroubleshootingNotification } from '../actions/troubleshootingNotification';
 import UserPreferences from '../lib/methods/userPreferences';
 import { inquiryRequest, inquiryReset } from '../ee/omnichannel/actions/inquiry';
 import { isOmnichannelStatusAvailable } from '../ee/omnichannel/lib';
@@ -36,6 +39,11 @@ import {
 	subscribeUsersPresence
 } from '../lib/methods';
 import { Services } from '../lib/services';
+import { setUsersRoles } from '../actions/usersRoles';
+import { getServerById } from '../lib/database/services/Server';
+import appNavigation from '../lib/navigation/appNavigation';
+import { showActionSheetRef } from '../containers/ActionSheet';
+import { SupportedVersionsWarning } from '../containers/SupportedVersions';
 
 import appConfig from '../../app.json';
 
@@ -43,6 +51,30 @@ const getServer = state => state.server.server;
 const loginWithPasswordCall = args => Services.loginWithPassword(args);
 const loginCall = (credentials, isFromWebView) => Services.login(credentials, isFromWebView);
 const logoutCall = args => logout(args);
+
+const showSupportedVersionsWarning = function* showSupportedVersionsWarning(server) {
+	const { status: supportedVersionsStatus } = yield select(state => state.supportedVersions);
+	if (supportedVersionsStatus !== 'warn') {
+		return;
+	}
+	const serverRecord = yield getServerById(server);
+	const isMasterDetail = yield select(state => state.app.isMasterDetail);
+	if (!serverRecord || moment(new Date()).diff(serverRecord?.supportedVersionsWarningAt, 'hours') <= 12) {
+		return;
+	}
+
+	const serversDB = database.servers;
+	yield serversDB.write(async () => {
+		await serverRecord.update(r => {
+			r.supportedVersionsWarningAt = new Date();
+		});
+	});
+	if (isMasterDetail) {
+		appNavigation.navigate('ModalStackNavigator', { screen: 'SupportedVersionsWarning', params: { showCloseButton: true } });
+	} else {
+		showActionSheetRef({ children: <SupportedVersionsWarning /> });
+	}
+};
 
 const handleLoginRequest = function* handleLoginRequest({
 	credentials,
@@ -139,8 +171,11 @@ const fetchEnterpriseModulesFork = function* fetchEnterpriseModulesFork({ user }
 	}
 };
 
-const fetchRoomsFork = function* fetchRoomsFork() {
-	yield put(roomsRequest());
+const fetchUsersRoles = function* fetchRoomsFork() {
+	const roles = yield Services.getUsersRoles();
+	if (roles.length) {
+		yield put(setUsersRoles(roles));
+	}
 };
 
 const handleLoginSuccess = function* handleLoginSuccess({ user }) {
@@ -148,7 +183,7 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 		getUserPresence(user.id);
 
 		const server = yield select(getServer);
-		yield fork(fetchRoomsFork);
+		yield put(roomsRequest());
 		yield fork(fetchPermissionsFork);
 		yield fork(fetchCustomEmojisFork);
 		yield fork(fetchRolesFork);
@@ -158,6 +193,7 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 		yield fork(fetchEnterpriseModulesFork, { user });
 		yield fork(subscribeSettingsFork);
 		yield put(encryptionInit());
+		yield fork(fetchUsersRoles);
 
 		setLanguage(user?.language);
 
@@ -173,7 +209,9 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 			roles: user.roles,
 			isFromWebView: user.isFromWebView,
 			showMessageInMainThread: user.showMessageInMainThread,
-			avatarETag: user.avatarETag
+			avatarETag: user.avatarETag,
+			bio: user.bio,
+			nickname: user.nickname
 		};
 		yield serversDB.action(async () => {
 			try {
@@ -200,6 +238,8 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 		if (inviteLinkToken) {
 			yield put(inviteLinksRequest(inviteLinkToken));
 		}
+		yield showSupportedVersionsWarning(server);
+		yield put(initTroubleshootingNotification());
 	} catch (e) {
 		log(e);
 	}

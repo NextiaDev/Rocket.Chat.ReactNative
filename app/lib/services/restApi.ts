@@ -1,24 +1,28 @@
 import {
+	IAvatarSuggestion,
 	IMessage,
 	INotificationPreferences,
 	IPreviewItem,
+	IProfileParams,
 	IRoom,
 	IRoomNotifications,
-	SubscriptionType,
+	IServerRoom,
 	IUser,
-	IAvatarSuggestion,
-	IProfileParams
+	RoomType,
+	SubscriptionType
 } from '../../definitions';
+import { TParams } from '../../definitions/ILivechatEditView';
+import { ILivechatTag } from '../../definitions/ILivechatTag';
 import { ISpotlight } from '../../definitions/ISpotlight';
 import { TEAM_TYPE } from '../../definitions/ITeam';
+import { OperationParams, ResultFor } from '../../definitions/rest/helpers';
+import { SubscriptionsEndpoints } from '../../definitions/rest/v1/subscriptions';
 import { Encryption } from '../encryption';
-import { TParams } from '../../definitions/ILivechatEditView';
-import { store as reduxStore } from '../store/auxStore';
-import { getDeviceToken } from '../notifications';
 import { RoomTypes, roomTypeToApiType, unsubscribeRooms } from '../methods';
-import sdk from './sdk';
 import { compareServerVersion, getBundleId, isIOS } from '../methods/helpers';
-import { ILivechatTag } from '../../definitions/ILivechatTag';
+import { getDeviceToken } from '../notifications';
+import { store as reduxStore } from '../store/auxStore';
+import sdk from './sdk';
 
 export const createChannel = ({
 	name,
@@ -72,7 +76,7 @@ export const e2eUpdateGroupKey = (uid: string, rid: string, key: string): any =>
 
 export const e2eRequestRoomKey = (rid: string, e2eKeyId: string): Promise<{ message: { msg?: string }; success: boolean }> =>
 	// RC 0.70.0
-	sdk.methodCallWrapper('stream-notify-room-users', `${rid}/e2ekeyRequest`, rid, e2eKeyId);
+	sdk.methodCall('stream-notify-room-users', `${rid}/e2ekeyRequest`, rid, e2eKeyId);
 
 export const e2eAcceptSuggestedGroupKey = (rid: string): Promise<{ success: boolean }> =>
 	// RC 5.5
@@ -230,17 +234,23 @@ export const teamListRoomsOfUser = ({ teamId, userId }: { teamId: string; userId
 	sdk.get('teams.listRoomsOfUser', { teamId, userId });
 
 export const convertChannelToTeam = ({ rid, name, type }: { rid: string; name: string; type: 'c' | 'p' }) => {
-	const params = {
-		...(type === 'c'
-			? {
+	const serverVersion = reduxStore.getState().server.version;
+	let params;
+	if (type === 'c') {
+		// https://github.com/RocketChat/Rocket.Chat/pull/25279
+		params = compareServerVersion(serverVersion, 'greaterThanOrEqualTo', '4.8.0')
+			? { channelId: rid }
+			: {
 					channelId: rid,
 					channelName: name
-			  }
-			: {
-					roomId: rid,
-					roomName: name
-			  })
-	};
+			  };
+	} else {
+		params = {
+			roomId: rid,
+			roomName: name
+		};
+	}
+
 	return sdk.post(type === 'c' ? 'channels.convertToTeam' : 'groups.convertToTeam', params);
 };
 
@@ -286,6 +296,10 @@ export const togglePinMessage = (messageId: string, pinned?: boolean) => {
 	return sdk.post('chat.pinMessage', { messageId });
 };
 
+export const reportUser = (userId: string, description: string) =>
+	// RC 6.4.0
+	sdk.post('moderation.reportUser', { userId, description });
+
 export const reportMessage = (messageId: string) =>
 	// RC 0.64.0
 	sdk.post('chat.reportMessage', { messageId, description: 'Message reported by user' });
@@ -302,11 +316,33 @@ export const setReaction = (emoji: string, messageId: string) =>
 	// RC 0.62.2
 	sdk.post('chat.react', { emoji, messageId });
 
-export const toggleRead = (read: boolean, roomId: string) => {
-	if (read) {
-		return sdk.post('subscriptions.unread', { roomId });
+/**
+ * Toggles the read status of a room.
+ *
+ * @param isRead - Whether to mark the room as read or unread.
+ * @param roomId - The ID of the room.
+ * @param includeThreads - Optional flag to include threads when marking as read.
+ * @returns A promise from the sdk post method.
+ */
+export const toggleReadStatus = (
+	isRead: boolean,
+	roomId: string,
+	includeThreads?: boolean
+): Promise<ResultFor<'POST', keyof SubscriptionsEndpoints>> => {
+	let endpoint: keyof SubscriptionsEndpoints;
+	let payload: OperationParams<'POST', keyof SubscriptionsEndpoints> = { roomId };
+
+	if (isRead) {
+		endpoint = 'subscriptions.unread';
+	} else {
+		endpoint = 'subscriptions.read';
+		payload = { rid: roomId };
+		if (includeThreads) {
+			payload.readThreads = includeThreads;
+		}
 	}
-	return sdk.post('subscriptions.read', { rid: roomId });
+
+	return sdk.post(endpoint, payload);
 };
 
 export const getRoomCounters = (
@@ -327,6 +363,9 @@ export const getUserPreferences = (userId: string) =>
 export const getRoomInfo = (roomId: string) =>
 	// RC 0.72.0
 	sdk.get('rooms.info', { roomId });
+
+export const getRoomByTypeAndName = (roomType: RoomType, roomName: string): Promise<IServerRoom> =>
+	sdk.methodCallWrapper('getRoomByTypeAndName', roomType, roomName);
 
 export const getVisitorInfo = (visitorId: string) =>
 	// RC 2.3.0
@@ -831,8 +870,8 @@ export function e2eResetOwnKey(): Promise<boolean | {}> {
 	return sdk.methodCallWrapper('e2e.resetOwnE2EKey');
 }
 
-export const editMessage = async (message: IMessage) => {
-	const { rid, msg } = await Encryption.encryptMessage(message);
+export const editMessage = async (message: Pick<IMessage, 'id' | 'msg' | 'rid'>) => {
+	const { rid, msg } = await Encryption.encryptMessage(message as IMessage);
 	// RC 0.49.0
 	return sdk.post('chat.update', { roomId: rid, msgId: message.id, text: msg });
 };
@@ -865,6 +904,12 @@ export const removePushToken = (): Promise<boolean | void> => {
 	}
 	return Promise.resolve();
 };
+
+// RC 6.6.0
+export const pushTest = () => sdk.post('push.test');
+
+// RC 6.5.0
+export const pushInfo = () => sdk.get('push.info');
 
 export const sendEmailCode = () => {
 	const { username } = reduxStore.getState().login.user as IUser;
@@ -941,7 +986,9 @@ export const videoConferenceJoin = (callId: string, cam?: boolean, mic?: boolean
 
 export const videoConferenceGetCapabilities = () => sdk.get('video-conference.capabilities');
 
-export const videoConferenceStart = (roomId: string) => sdk.post('video-conference.start', { roomId });
+export const videoConferenceStart = (roomId: string) => sdk.post('video-conference.start', { roomId, allowRinging: true });
+
+export const videoConferenceCancel = (callId: string) => sdk.post('video-conference.cancel', { callId });
 
 export const saveUserProfileMethod = (
 	params: IProfileParams,
@@ -955,3 +1002,13 @@ export const saveUserProfileMethod = (
 export const deleteOwnAccount = (password: string, confirmRelinquish = false): any =>
 	// RC 0.67.0
 	sdk.post('users.deleteOwnAccount', { password, confirmRelinquish });
+
+export const postMessage = (roomId: string, text: string) => sdk.post('chat.postMessage', { roomId, text });
+
+export const notifyUser = (type: string, params: Record<string, any>): Promise<boolean> =>
+	sdk.methodCall('stream-notify-user', type, params);
+
+export const getUsersRoles = (): Promise<boolean> => sdk.methodCall('getUserRoles');
+
+export const getSupportedVersionsCloud = (uniqueId?: string, domain?: string) =>
+	fetch(`https://releases.rocket.chat/v2/server/supportedVersions?uniqueId=${uniqueId}&domain=${domain}&source=mobile`);

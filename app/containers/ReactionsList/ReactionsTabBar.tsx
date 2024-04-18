@@ -7,7 +7,7 @@ import { IReaction } from '../../definitions';
 import { TGetCustomEmoji } from '../../definitions/IEmoji';
 import I18n from '../../i18n';
 import styles, { MIN_TAB_WIDTH } from './styles';
-import { useDimensions, useOrientation } from '../../dimensions';
+import { useDimensions } from '../../dimensions';
 
 interface ITabBarItem {
 	getCustomEmoji: TGetCustomEmoji;
@@ -37,7 +37,7 @@ const TabBarItem = ({ tab, index, goToPage, getCustomEmoji }: ITabBarItem) => {
 		>
 			<View style={styles.tabBarItem}>
 				{tab._id === 'All' ? (
-					<Text style={[styles.allTabItem, { color: colors.auxiliaryTintColor }]}>{I18n.t('All')}</Text>
+					<Text style={[styles.allTabItem, { color: colors.fontHint }]}>{I18n.t('All')}</Text>
 				) : (
 					<>
 						<Emoji
@@ -46,7 +46,7 @@ const TabBarItem = ({ tab, index, goToPage, getCustomEmoji }: ITabBarItem) => {
 							customEmojiStyle={styles.customEmojiStyle}
 							getCustomEmoji={getCustomEmoji}
 						/>
-						<Text style={[styles.reactionCount, { color: colors.auxiliaryTintColor }]}>{tab.usernames.length}</Text>
+						<Text style={[styles.reactionCount, { color: colors.fontHint }]}>{tab.usernames.length}</Text>
 					</>
 				)}
 			</View>
@@ -55,10 +55,8 @@ const TabBarItem = ({ tab, index, goToPage, getCustomEmoji }: ITabBarItem) => {
 };
 
 const ReactionsTabBar = ({ tabs, activeTab, goToPage, getCustomEmoji }: IReactionsTabBar): React.ReactElement => {
-	const { isLandscape } = useOrientation();
 	const { width } = useDimensions();
-	const reactionsListWidth = isLandscape ? width / 2 : width;
-	const tabWidth = tabs && Math.max(reactionsListWidth / tabs.length, MIN_TAB_WIDTH);
+	const tabWidth = tabs && Math.max(width / tabs.length, MIN_TAB_WIDTH);
 	const { colors } = useTheme();
 	return (
 		<View testID='reactionsTabBar'>
@@ -70,7 +68,7 @@ const ReactionsTabBar = ({ tabs, activeTab, goToPage, getCustomEmoji }: IReactio
 							style={{
 								width: tabWidth,
 								borderBottomWidth: isActiveTab ? 2 : 1,
-								borderColor: isActiveTab ? colors.tintActive : colors.separatorColor
+								borderColor: isActiveTab ? colors.strokeHighlight : colors.strokeLight
 							}}
 							key={tab.emoji}
 						>

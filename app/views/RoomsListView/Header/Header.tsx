@@ -8,6 +8,7 @@ import { isIOS, isTablet } from '../../../lib/methods/helpers';
 import { useOrientation } from '../../../dimensions';
 import { useTheme } from '../../../theme';
 import SearchHeader from '../../../containers/SearchHeader';
+import { useAppSelector } from '../../../lib/hooks';
 
 const styles = StyleSheet.create({
 	container: {
@@ -20,9 +21,11 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		flexShrink: 1,
+		fontSize: 16,
 		...sharedStyles.textSemibold
 	},
 	subtitle: {
+		fontSize: 14,
 		...sharedStyles.textRegular
 	},
 	upsideDown: {
@@ -51,20 +54,19 @@ const Header = React.memo(
 		server,
 		// showServerDropdown,
 		showSearchHeader,
-		onSearchChangeText
-	}: // onPress
-	IRoomHeader) => {
+		onSearchChangeText,
+		onPress
+	}: IRoomHeader) => {
+		const { status: supportedVersionsStatus } = useAppSelector(state => state.supportedVersions);
 		const { colors } = useTheme();
-		const { isLandscape } = useOrientation();
-		const scale = isIOS && isLandscape && !isTablet ? 0.8 : 1;
-		const titleFontSize = 16 * scale;
-		const subTitleFontSize = 14 * scale;
 
 		if (showSearchHeader) {
 			return <SearchHeader onSearchChangeText={onSearchChangeText} testID='rooms-list-view-search-input' />;
 		}
 		let subtitle;
-		if (connecting) {
+		if (supportedVersionsStatus === 'expired') {
+			subtitle = 'Cannot connect';
+		} else if (connecting) {
 			subtitle = I18n.t('Connecting');
 		} else if (isFetching) {
 			subtitle = I18n.t('Updating');

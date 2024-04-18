@@ -11,6 +11,7 @@ import RoomView from '../views/RoomView';
 import RoomsListView from '../views/RoomsListView';
 import RoomActionsView from '../views/RoomActionsView';
 import RoomInfoView from '../views/RoomInfoView';
+import ReportUserView from '../views/ReportUserView';
 import RoomInfoEditView from '../views/RoomInfoEditView';
 import RoomMembersView from '../views/RoomMembersView';
 import SearchMessagesView from '../views/SearchMessagesView';
@@ -41,11 +42,13 @@ import DisplayPrefsView from '../views/DisplayPrefsView';
 // Settings Stack
 import SettingsView from '../views/SettingsView';
 import SecurityPrivacyView from '../views/SecurityPrivacyView';
+import PushTroubleshootView from '../views/PushTroubleshootView';
 import E2EEncryptionSecurityView from '../views/E2EEncryptionSecurityView';
 import LanguageView from '../views/LanguageView';
 import ThemeView from '../views/ThemeView';
 import DefaultBrowserView from '../views/DefaultBrowserView';
 import ScreenLockConfigView from '../views/ScreenLockConfigView';
+import MediaAutoDownloadView from '../views/MediaAutoDownloadView';
 // Admin Stack
 import AdminPanelView from '../views/AdminPanelView';
 // NewMessage Stack
@@ -63,6 +66,7 @@ import JitsiMeetView from '../views/JitsiMeetView';
 import StatusView from '../views/StatusView';
 import ShareView from '../views/ShareView';
 import CreateDiscussionView from '../views/CreateDiscussionView';
+import ForwardMessageView from '../views/ForwardMessageView';
 import QueueListView from '../ee/omnichannel/views/QueueListView';
 import AddChannelTeamView from '../views/AddChannelTeamView';
 import AddExistingChannelView from '../views/AddExistingChannelView';
@@ -82,9 +86,10 @@ import {
 	SettingsStackParamList
 } from './types';
 import { isIOS } from '../lib/methods/helpers';
+import { TNavigation } from './stackType';
 
 // ChatsStackNavigator
-const ChatsStack = createStackNavigator<ChatsStackParamList>();
+const ChatsStack = createStackNavigator<ChatsStackParamList & TNavigation>();
 const ChatsStackNavigator = () => {
 	const { theme } = React.useContext(ThemeContext);
 	return (
@@ -95,7 +100,9 @@ const ChatsStackNavigator = () => {
 			<ChatsStack.Screen name='RoomView' component={RoomView} />
 			<ChatsStack.Screen name='RoomActionsView' component={RoomActionsView} options={RoomActionsView.navigationOptions} />
 			<ChatsStack.Screen name='SelectListView' component={SelectListView} options={SelectListView.navigationOptions} />
-			<ChatsStack.Screen name='RoomInfoView' component={RoomInfoView} options={RoomInfoView.navigationOptions} />
+			<ChatsStack.Screen name='RoomInfoView' component={RoomInfoView} />
+			<ChatsStack.Screen name='ReportUserView' component={ReportUserView} />
+			{/* @ts-ignore */}
 			<ChatsStack.Screen name='RoomInfoEditView' component={RoomInfoEditView} options={RoomInfoEditView.navigationOptions} />
 			<ChatsStack.Screen name='ChangeAvatarView' component={ChangeAvatarView} />
 			<ChatsStack.Screen name='RoomMembersView' component={RoomMembersView} />
@@ -109,26 +116,21 @@ const ChatsStackNavigator = () => {
 			<ChatsStack.Screen name='InviteUsersView' component={InviteUsersView} />
 			<ChatsStack.Screen name='InviteUsersEditView' component={InviteUsersEditView} />
 			<ChatsStack.Screen name='MessagesView' component={MessagesView} />
-			<ChatsStack.Screen name='AutoTranslateView' component={AutoTranslateView} options={AutoTranslateView.navigationOptions} />
+			<ChatsStack.Screen name='AutoTranslateView' component={AutoTranslateView} />
 			<ChatsStack.Screen name='DirectoryView' component={DirectoryView} options={DirectoryView.navigationOptions} />
 			<ChatsStack.Screen name='NotificationPrefView' component={NotificationPrefView} />
+			<ChatsStack.Screen name='PushTroubleshootView' component={PushTroubleshootView} />
 			<ChatsStack.Screen name='ForwardLivechatView' component={ForwardLivechatView} />
 			<ChatsStack.Screen name='CloseLivechatView' component={CloseLivechatView} />
 			<ChatsStack.Screen name='LivechatEditView' component={LivechatEditView} options={LivechatEditView.navigationOptions} />
-			<ChatsStack.Screen name='PickerView' component={PickerView} options={PickerView.navigationOptions} />
-			<ChatsStack.Screen
-				name='ThreadMessagesView'
-				component={ThreadMessagesView}
-				options={ThreadMessagesView.navigationOptions}
-			/>
+			<ChatsStack.Screen name='PickerView' component={PickerView} />
+			{/* @ts-ignore */}
+			<ChatsStack.Screen name='ThreadMessagesView' component={ThreadMessagesView} />
 			<ChatsStack.Screen name='TeamChannelsView' component={TeamChannelsView} />
 			<ChatsStack.Screen name='CreateChannelView' component={CreateChannelView} />
 			<ChatsStack.Screen name='AddChannelTeamView' component={AddChannelTeamView} />
-			<ChatsStack.Screen
-				name='AddExistingChannelView'
-				component={AddExistingChannelView}
-				options={AddExistingChannelView.navigationOptions}
-			/>
+			<ChatsStack.Screen name='AddExistingChannelView' component={AddExistingChannelView} />
+			{/* @ts-ignore */}
 			<ChatsStack.Screen name='MarkdownTableView' component={MarkdownTableView} />
 			<ChatsStack.Screen name='ReadReceiptsView' component={ReadReceiptsView} options={ReadReceiptsView.navigationOptions} />
 			<ChatsStack.Screen name='QueueListView' component={QueueListView} />
@@ -144,7 +146,7 @@ const ChatsStackNavigator = () => {
 };
 
 // ProfileStackNavigator
-const ProfileStack = createStackNavigator<ProfileStackParamList>();
+const ProfileStack = createStackNavigator<ProfileStackParamList & TNavigation>();
 const ProfileStackNavigator = () => {
 	const { theme } = React.useContext(ThemeContext);
 	return (
@@ -155,7 +157,8 @@ const ProfileStackNavigator = () => {
 			<ProfileStack.Screen name='UserPreferencesView' component={UserPreferencesView} />
 			<ProfileStack.Screen name='ChangeAvatarView' component={ChangeAvatarView} />
 			<ProfileStack.Screen name='UserNotificationPrefView' component={UserNotificationPrefView} />
-			<ProfileStack.Screen name='PickerView' component={PickerView} options={PickerView.navigationOptions} />
+			<ProfileStack.Screen name='PushTroubleshootView' component={PushTroubleshootView} />
+			<ProfileStack.Screen name='PickerView' component={PickerView} />
 		</ProfileStack.Navigator>
 	);
 };
@@ -171,14 +174,12 @@ const SettingsStackNavigator = () => {
 		>
 			<SettingsStack.Screen name='SettingsView' component={SettingsView} />
 			<SettingsStack.Screen name='SecurityPrivacyView' component={SecurityPrivacyView} />
-			<SettingsStack.Screen
-				name='E2EEncryptionSecurityView'
-				component={E2EEncryptionSecurityView}
-				options={E2EEncryptionSecurityView.navigationOptions}
-			/>
+			<SettingsStack.Screen name='PushTroubleshootView' component={PushTroubleshootView} />
+			<SettingsStack.Screen name='E2EEncryptionSecurityView' component={E2EEncryptionSecurityView} />
 			<SettingsStack.Screen name='LanguageView' component={LanguageView} />
 			<SettingsStack.Screen name='ThemeView' component={ThemeView} />
 			<SettingsStack.Screen name='DefaultBrowserView' component={DefaultBrowserView} />
+			<SettingsStack.Screen name='MediaAutoDownloadView' component={MediaAutoDownloadView} />
 			<SettingsStack.Screen
 				name='ScreenLockConfigView'
 				component={ScreenLockConfigView}
@@ -256,6 +257,7 @@ const NewMessageStackNavigator = () => {
 			<NewMessageStack.Screen name='SelectedUsersViewCreateChannel' component={SelectedUsersView} />
 			<NewMessageStack.Screen name='CreateChannelView' component={CreateChannelView} />
 			<NewMessageStack.Screen name='CreateDiscussionView' component={CreateDiscussionView} />
+			<NewMessageStack.Screen name='ForwardMessageView' component={ForwardMessageView} />
 		</NewMessageStack.Navigator>
 	);
 };
@@ -290,7 +292,7 @@ const E2EEnterYourPasswordStackNavigator = () => {
 };
 
 // InsideStackNavigator
-const InsideStack = createStackNavigator<InsideStackParamList>();
+const InsideStack = createStackNavigator<InsideStackParamList & TNavigation>();
 const InsideStackNavigator = () => {
 	const { theme } = React.useContext(ThemeContext);
 

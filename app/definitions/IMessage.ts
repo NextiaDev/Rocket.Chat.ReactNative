@@ -8,6 +8,8 @@ import { TThreadMessageModel } from './IThreadMessage';
 import { TThreadModel } from './IThread';
 import { IUrl, IUrlFromServer } from './IUrl';
 
+export type TMessageAction = 'quote' | 'edit' | 'react' | null;
+
 export type MessageType =
 	| 'jitsi_call_started'
 	| 'discussion-created'
@@ -41,7 +43,7 @@ export interface IEditedBy {
 
 export type TOnLinkPress = (link: string) => void;
 
-export interface ITranslations {
+export interface IMessageTranslations {
 	_id: string;
 	language: string;
 	value: string;
@@ -136,7 +138,7 @@ export interface IMessage extends IMessageFromServer {
 	replies?: string[];
 	unread?: boolean;
 	autoTranslate?: boolean;
-	translations?: ITranslations[];
+	translations?: IMessageTranslations[];
 	tmsg?: string;
 	blocks?: any;
 	e2e?: E2EType;
@@ -243,3 +245,7 @@ export type MessageTypesValues =
 	| 'message_pinned'
 	| 'message_snippeted'
 	| 'jitsi_call_started';
+
+export interface IAttachmentTranslations {
+	[k: string]: string;
+}

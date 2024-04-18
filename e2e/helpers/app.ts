@@ -97,10 +97,9 @@ async function logout() {
 async function mockMessage(message: string, isThread = false) {
 	const deviceType = device.getPlatform();
 	const { textMatcher } = platformTypes[deviceType];
-	const input = isThread ? 'messagebox-input-thread' : 'messagebox-input';
-	await element(by.id(input)).replaceText(message);
-	await sleep(300);
-	await element(by.id('messagebox-send-message')).tap();
+	const input = isThread ? 'message-composer-input-thread' : 'message-composer-input';
+	await element(by.id(input)).typeText(message);
+	await element(by.id('message-composer-send')).tap();
 	await waitFor(element(by[textMatcher](message)))
 		.toExist()
 		.withTimeout(60000);
@@ -117,14 +116,23 @@ async function tapBack() {
 	await sleep(300); // Wait for animation to finish
 }
 
-async function searchRoom(room: string) {
+async function searchRoom(
+	room: string,
+	nativeElementAction: keyof Pick<Detox.NativeElementActions, 'typeText' | 'replaceText'> = 'typeText',
+	roomTestID?: string
+) {
 	await waitFor(element(by.id('rooms-list-view')))
-		.toBeVisible()
+		.toExist()
 		.withTimeout(30000);
 	await tapAndWaitFor(element(by.id('rooms-list-view-search')), element(by.id('rooms-list-view-search-input')), 5000);
-	await element(by.id('rooms-list-view-search-input')).typeText(room);
-	await sleep(300);
-	await waitFor(element(by.id(`rooms-list-view-item-${room}`)))
+	if (nativeElementAction === 'replaceText') {
+		// trigger the input's onChangeText
+		await element(by.id('rooms-list-view-search-input')).typeText(' ');
+	}
+	await element(by.id('rooms-list-view-search-input'))[nativeElementAction](room);
+	await sleep(500);
+	await sleep(500);
+	await waitFor(element(by.id(roomTestID || `rooms-list-view-item-${room}`)))
 		.toBeVisible()
 		.withTimeout(60000);
 }
@@ -133,6 +141,20 @@ async function navigateToRoom(room: string) {
 	await searchRoom(room);
 	await element(by.id(`rooms-list-view-item-${room}`)).tap();
 	await checkRoomTitle(room);
+}
+
+async function navigateToRecentRoom(room: string) {
+	await waitFor(element(by.id('rooms-list-view')))
+		.toExist()
+		.withTimeout(10000);
+	await tapAndWaitFor(element(by.id('rooms-list-view-search')), element(by.id('rooms-list-view-search-input')), 5000);
+	await waitFor(element(by.id(`rooms-list-view-item-${room}`)))
+		.toBeVisible()
+		.withTimeout(10000);
+	await element(by.id(`rooms-list-view-item-${room}`)).tap();
+	await waitFor(element(by.id(`room-view-title-${room}`)))
+		.toBeVisible()
+		.withTimeout(10000);
 }
 
 async function tryTapping(
@@ -155,6 +177,13 @@ async function tryTapping(
 	}
 }
 
+async function jumpToQuotedMessage(theElement: Detox.IndexableNativeElement | Detox.NativeElement): Promise<void> {
+	const deviceType = device.getPlatform();
+	const { textMatcher } = platformTypes[deviceType];
+	await tryTapping(theElement, 2000, true);
+	await element(by[textMatcher]('Jump to message')).atIndex(0).tap();
+}
+
 async function tapAndWaitFor(
 	elementToTap: Detox.IndexableNativeElement | Detox.NativeElement,
 	elementToWaitFor: Detox.IndexableNativeElement | Detox.NativeElement,
@@ -168,6 +197,7 @@ async function tapAndWaitFor(
 			await elementToTap.tap();
 		}
 		await waitFor(elementToWaitFor).toBeVisible().withTimeout(1000);
+		await sleep(300); // Wait for animation
 	} catch (e) {
 		if (timeout <= 0) {
 			throw e;
@@ -244,5 +274,7 @@ export {
 	checkRoomTitle,
 	checkServer,
 	platformTypes,
-	expectValidRegisterOrRetry
+	expectValidRegisterOrRetry,
+	jumpToQuotedMessage,
+	navigateToRecentRoom
 };

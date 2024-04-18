@@ -1,25 +1,27 @@
+import { StackNavigationProp } from '@react-navigation/stack';
+import { dequal } from 'dequal';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { dequal } from 'dequal';
-import { Observable, Subscription } from 'rxjs';
 import { Dispatch } from 'redux';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { Observable, Subscription } from 'rxjs';
 
-import { ILivechatTag } from '../../definitions/ILivechatTag';
-import * as HeaderButton from '../../containers/HeaderButton';
-import database from '../../lib/database';
-import { getUserSelector } from '../../selectors/login';
-import { events, logEvent } from '../../lib/methods/helpers/log';
-import { IApplicationState, ISubscription, SubscriptionType, TMessageModel, TSubscriptionModel } from '../../definitions';
-import { ChatsStackParamList } from '../../stacks/types';
 import { TActionSheetOptionsItem } from '../../containers/ActionSheet';
-import i18n from '../../i18n';
-import { showConfirmationAlert, showErrorAlert } from '../../lib/methods/helpers';
-import { onHoldLivechat, returnLivechat } from '../../lib/services/restApi';
-import { closeLivechat as closeLivechatService } from '../../lib/methods/helpers/closeLivechat';
-import { Services } from '../../lib/services';
+import * as HeaderButton from '../../containers/HeaderButton';
+import { IApplicationState, ISubscription, SubscriptionType, TMessageModel, TSubscriptionModel } from '../../definitions';
 import { ILivechatDepartment } from '../../definitions/ILivechatDepartment';
+import { ILivechatTag } from '../../definitions/ILivechatTag';
+import i18n from '../../i18n';
+import database from '../../lib/database';
+import { showConfirmationAlert, showErrorAlert } from '../../lib/methods/helpers';
+import { closeLivechat as closeLivechatService } from '../../lib/methods/helpers/closeLivechat';
+import { events, logEvent } from '../../lib/methods/helpers/log';
+import { Services } from '../../lib/services';
+import { onHoldLivechat, returnLivechat } from '../../lib/services/restApi';
+import { getUserSelector } from '../../selectors/login';
+import { TNavigation } from '../../stacks/stackType';
+import { ChatsStackParamList } from '../../stacks/types';
 import HeaderCallButton from './components/HeaderCallButton';
+import { TColors, TSupportedThemes, withTheme } from '../../theme';
 
 interface IRightButtonsProps extends Pick<ISubscription, 't'> {
 	userId?: string;
@@ -32,7 +34,7 @@ interface IRightButtonsProps extends Pick<ISubscription, 't'> {
 	status?: string;
 	dispatch: Dispatch;
 	encrypted?: boolean;
-	navigation: StackNavigationProp<ChatsStackParamList, 'RoomView'>;
+	navigation: StackNavigationProp<ChatsStackParamList & TNavigation, 'RoomView'>;
 	omnichannelPermissions: {
 		canForwardGuest: boolean;
 		canReturnQueue: boolean;
@@ -42,6 +44,10 @@ interface IRightButtonsProps extends Pick<ISubscription, 't'> {
 	showActionSheet: Function;
 	departmentId?: string;
 	rid?: string;
+	theme?: TSupportedThemes;
+	colors?: TColors;
+	issuesWithNotifications: boolean;
+	notificationsDisabled?: boolean;
 }
 
 interface IRigthButtonsState {
@@ -54,6 +60,7 @@ interface IRigthButtonsState {
 class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsState> {
 	private threadSubscription?: Subscription;
 	private subSubscription?: Subscription;
+	private room?: TSubscriptionModel;
 
 	constructor(props: IRightButtonsProps) {
 		super(props);
@@ -79,8 +86,8 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 		if (rid) {
 			try {
 				const subCollection = db.get('subscriptions');
-				const subRecord = await subCollection.find(rid);
-				this.observeSubscription(subRecord);
+				this.room = await subCollection.find(rid);
+				this.observeSubscription(this.room);
 			} catch (e) {
 				console.log("Can't find subscription to observe.");
 			}
@@ -89,7 +96,7 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 
 	shouldComponentUpdate(nextProps: IRightButtonsProps, nextState: IRigthButtonsState) {
 		const { isFollowingThread, tunread, tunreadUser, tunreadGroup } = this.state;
-		const { teamId, status, joined, omnichannelPermissions } = this.props;
+		const { teamId, status, joined, omnichannelPermissions, theme, issuesWithNotifications, notificationsDisabled } = this.props;
 		if (nextProps.teamId !== teamId) {
 			return true;
 		}
@@ -99,7 +106,16 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 		if (nextProps.joined !== joined) {
 			return true;
 		}
+		if (nextProps.theme !== theme) {
+			return true;
+		}
 		if (nextState.isFollowingThread !== isFollowingThread) {
+			return true;
+		}
+		if (nextProps.issuesWithNotifications !== issuesWithNotifications) {
+			return true;
+		}
+		if (nextProps.notificationsDisabled !== notificationsDisabled) {
 			return true;
 		}
 		if (!dequal(nextProps.omnichannelPermissions, omnichannelPermissions)) {
@@ -287,6 +303,31 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 		showActionSheet({ options });
 	};
 
+	navigateToNotificationOrPushTroubleshoot = () => {
+		const { room } = this;
+		const { rid, navigation, isMasterDetail, issuesWithNotifications } = this.props;
+
+		if (!rid || !room) {
+			return;
+		}
+		if (!issuesWithNotifications && room) {
+			if (isMasterDetail) {
+				navigation.navigate('ModalStackNavigator', {
+					screen: 'NotificationPrefView',
+					params: { rid, room }
+				});
+			} else {
+				navigation.navigate('NotificationPrefView', { rid, room });
+			}
+		} else if (isMasterDetail) {
+			navigation.navigate('ModalStackNavigator', {
+				screen: 'PushTroubleshootView'
+			});
+		} else {
+			navigation.navigate('PushTroubleshootView');
+		}
+	};
+
 	goSearchView = () => {
 		logEvent(events.ROOM_GO_SEARCH);
 		const { rid, t, navigation, isMasterDetail, encrypted } = this.props;
@@ -320,7 +361,7 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 
 	render() {
 		const { isFollowingThread, tunread, tunreadUser, tunreadGroup } = this.state;
-		const { t, tmid, threadsEnabled, rid } = this.props;
+		const { t, tmid, threadsEnabled, rid, colors, issuesWithNotifications, notificationsDisabled } = this.props;
 
 		if (t === 'l') {
 			if (!this.isOmnichannelPreview()) {
@@ -345,6 +386,14 @@ class RightButtonsContainer extends Component<IRightButtonsProps, IRigthButtonsS
 		}
 		return (
 			<HeaderButton.Container>
+				{issuesWithNotifications || notificationsDisabled ? (
+					<HeaderButton.Item
+						color={issuesWithNotifications ? colors!.fontDanger : ''}
+						iconName='notification-disabled'
+						onPress={this.navigateToNotificationOrPushTroubleshoot}
+						testID='room-view-push-troubleshoot'
+					/>
+				) : null}
 				{rid ? <HeaderCallButton rid={rid} /> : null}
 				{threadsEnabled ? (
 					<HeaderButton.Item
@@ -364,7 +413,8 @@ const mapStateToProps = (state: IApplicationState) => ({
 	userId: getUserSelector(state).id,
 	threadsEnabled: state.settings.Threads_enabled as boolean,
 	isMasterDetail: state.app.isMasterDetail,
-	livechatRequestComment: state.settings.Livechat_request_comment_when_closing_conversation as boolean
+	livechatRequestComment: state.settings.Livechat_request_comment_when_closing_conversation as boolean,
+	issuesWithNotifications: state.troubleshootingNotification.issuesWithNotifications
 });
 
-export default connect(mapStateToProps)(RightButtonsContainer);
+export default connect(mapStateToProps)(withTheme(RightButtonsContainer));

@@ -53,7 +53,7 @@ interface ILivechatEditViewProps {
 }
 
 const Title = ({ title, theme }: ITitle) =>
-	title ? <Text style={[styles.title, { color: themes[theme].titleText }]}>{title}</Text> : null;
+	title ? <Text style={[styles.title, { color: themes[theme].fontTitlesLabels }]}>{title}</Text> : null;
 
 const LivechatEditView = ({ user, navigation, route, theme }: ILivechatEditViewProps) => {
 	const [customFields, setCustomFields] = useState<ICustomFields>({});
@@ -89,6 +89,11 @@ const LivechatEditView = ({ user, navigation, route, theme }: ILivechatEditViewP
 
 	const [tagParam, setTags] = useState(livechat?.tags || []);
 	const [tagParamSelected, setTagParamSelected] = useState(livechat?.tags || []);
+
+	const tagOptions = tagParam.map((tag: string) => ({ text: { text: tag }, value: tag }));
+	const tagValues = Array.isArray(tagParamSelected)
+		? tagOptions.filter((option: any) => tagParamSelected.includes(option.value))
+		: [];
 
 	useEffect(() => {
 		const arr = [...tagParam, ...availableUserTags];
@@ -178,7 +183,7 @@ const LivechatEditView = ({ user, navigation, route, theme }: ILivechatEditViewP
 
 	return (
 		<KeyboardView
-			style={{ backgroundColor: themes[theme].auxiliaryBackground }}
+			style={{ backgroundColor: themes[theme].surfaceHover }}
 			contentContainerStyle={sharedStyles.container}
 			keyboardVerticalOffset={128}
 		>
@@ -252,14 +257,14 @@ const LivechatEditView = ({ user, navigation, route, theme }: ILivechatEditViewP
 						editable={!!editLivechatRoomCustomFieldsPermission}
 					/>
 
-					<Text style={[styles.label, { color: themes[theme].titleText }]}>{I18n.t('Tags')}</Text>
+					<Text style={[styles.label, { color: themes[theme].fontTitlesLabels }]}>{I18n.t('Tags')}</Text>
 					<MultiSelect
-						options={tagParam.map((tag: string) => ({ text: { text: tag }, value: tag }))}
+						options={tagOptions}
 						onChange={({ value }: { value: string[] }) => {
 							setTagParamSelected([...value]);
 						}}
 						placeholder={{ text: I18n.t('Tags') }}
-						value={tagParamSelected}
+						value={tagValues}
 						context={BlockContext.FORM}
 						multiselect
 						disabled={!editLivechatRoomCustomFieldsPermission}

@@ -70,3 +70,12 @@ e2e/e2e_account.ts
 junit.xml
 
 *.p8
+
+# Custom
+.whitelabel.yml
+.env
+ios/tmp.xcconfig
+app.json
+ios/GoogleService-Info.plist
+android/app/src/play/google-services.json
+android/app/google-services.json

@@ -1,8 +1,9 @@
 import React, { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { shallowEqual } from 'react-redux';
+import { HeaderBackButton } from '@react-navigation/elements';
 
 import KeyboardView from '../../containers/KeyboardView';
 import sharedStyles from '../Styles';
@@ -25,7 +26,7 @@ import { IAvatar } from '../../definitions';
 import AvatarSuggestion from './AvatarSuggestion';
 import log from '../../lib/methods/helpers/log';
 import { changeRoomsAvatar, changeUserAvatar, resetUserAvatar } from './submitServices';
-import ImagePicker, { Image } from './ImagePicker';
+import ImagePicker, { Image } from '../../lib/methods/helpers/ImagePicker/ImagePicker';
 
 enum AvatarStateActions {
 	CHANGE_AVATAR = 'CHANGE_AVATAR',
@@ -74,12 +75,20 @@ const ChangeAvatarView = () => {
 		shallowEqual
 	);
 	const isDirty = useRef<boolean>(false);
-	const navigation = useNavigation<StackNavigationProp<ChatsStackParamList, 'ChangeAvatarView'>>();
+	const navigation = useNavigation<NativeStackNavigationProp<ChatsStackParamList, 'ChangeAvatarView'>>();
 	const { context, titleHeader, room, t } = useRoute<RouteProp<ChatsStackParamList, 'ChangeAvatarView'>>().params;
 
 	useLayoutEffect(() => {
 		navigation.setOptions({
-			title: titleHeader || I18n.t('Avatar')
+			title: titleHeader || I18n.t('Avatar'),
+			headerLeft: () => (
+				<HeaderBackButton
+					labelVisible={false}
+					onPress={() => navigation.goBack()}
+					tintColor={colors.fontDefault}
+					testID='header-back'
+				/>
+			)
 		});
 	}, [titleHeader, navigation]);
 
@@ -130,7 +139,7 @@ const ChangeAvatarView = () => {
 		return navigation.goBack();
 	};
 
-	const pickImage = async () => {
+	const pickImage = async (isCam = false) => {
 		const options = {
 			cropping: true,
 			compressImageQuality: 0.8,
@@ -141,31 +150,31 @@ const ChangeAvatarView = () => {
 			includeBase64: true
 		};
 		try {
-			const response: Image = await ImagePicker.openPicker(options);
+			const response: Image =
+				isCam === true
+					? await ImagePicker.openCamera({ ...options, useFrontCamera: true })
+					: await ImagePicker.openPicker(options);
 			dispatchAvatar({
 				type: AvatarStateActions.CHANGE_AVATAR,
 				payload: { url: response.path, data: `data:image/jpeg;base64,${response.data}`, service: 'upload' }
 			});
-		} catch (error) {
-			log(error);
+		} catch (error: any) {
+			if (error?.code !== 'E_PICKER_CANCELLED') {
+				log(error);
+			}
 		}
 	};
 
 	const deletingRoomAvatar = context === 'room' && state.data === null;
 
 	return (
-		<KeyboardView
-			style={{ backgroundColor: colors.auxiliaryBackground }}
-			contentContainerStyle={sharedStyles.container}
-			keyboardVerticalOffset={128}
-		>
+		<KeyboardView contentContainerStyle={sharedStyles.container} keyboardVerticalOffset={128}>
 			<StatusBar />
 			<SafeAreaView testID='change-avatar-view'>
 				<ScrollView
 					contentContainerStyle={sharedStyles.containerScrollView}
 					testID='change-avatar-view-list'
-					{...scrollPersistTaps}
-				>
+					{...scrollPersistTaps}>
 					<View style={styles.avatarContainer} testID='change-avatar-view-avatar'>
 						{deletingRoomAvatar ? (
 							<AvatarPresentational
@@ -216,10 +225,18 @@ const ChangeAvatarView = () => {
 						/>
 					) : null}
 					<Button
+						title={I18n.t('Take_a_photo')}
+						type='secondary'
+						disabled={saving}
+						backgroundColor={colors.buttonBackgroundSecondaryDefault}
+						onPress={() => pickImage(true)}
+						testID='change-avatar-view-take-a-photo'
+					/>
+					<Button
 						title={I18n.t('Upload_image')}
 						type='secondary'
 						disabled={saving}
-						backgroundColor={colors.editAndUploadButtonAvatar}
+						backgroundColor={colors.buttonBackgroundSecondaryDefault}
 						onPress={pickImage}
 						testID='change-avatar-view-upload-image'
 					/>
@@ -228,7 +245,7 @@ const ChangeAvatarView = () => {
 							title={I18n.t('Delete_image')}
 							type='primary'
 							disabled={saving}
-							backgroundColor={colors.dangerColor}
+							backgroundColor={colors.buttonBackgroundDangerDefault}
 							onPress={() => dispatchAvatar({ type: AvatarStateActions.RESET_ROOM_AVATAR, payload: { data: null } })}
 							testID='change-avatar-view-delete-my-account'
 						/>

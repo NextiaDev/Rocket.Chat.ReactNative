@@ -1,8 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import Orientation from 'react-native-orientation-locker';
 import { useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -18,7 +17,7 @@ import I18n from '../i18n';
 import KeyboardView from '../containers/KeyboardView';
 import { getUserSelector } from '../selectors/login';
 import { useTheme } from '../theme';
-import { isTablet, showErrorAlert } from '../lib/methods/helpers';
+import { showErrorAlert } from '../lib/methods/helpers';
 import scrollPersistTaps from '../lib/methods/helpers/scrollPersistTaps';
 import sharedStyles from './Styles';
 import { Services } from '../lib/services';
@@ -52,13 +51,10 @@ const SetUsernameView = () => {
 	const dispatch = useDispatch();
 	const { server, token } = useAppSelector(state => ({ server: state.server.server, token: getUserSelector(state).token }));
 
-	const navigation = useNavigation<StackNavigationProp<SetUsernameStackParamList, 'SetUsernameView'>>();
+	const navigation = useNavigation<NativeStackNavigationProp<SetUsernameStackParamList, 'SetUsernameView'>>();
 
 	useLayoutEffect(() => {
 		navigation.setOptions({ title: server });
-		if (!isTablet) {
-			Orientation.lockToPortrait();
-		}
 	}, [navigation, server]);
 
 	useEffect(() => {
@@ -86,14 +82,14 @@ const SetUsernameView = () => {
 	};
 
 	return (
-		<KeyboardView style={{ backgroundColor: colors.auxiliaryBackground }} contentContainerStyle={sharedStyles.container}>
+		<KeyboardView style={{ backgroundColor: colors.surfaceHover }} contentContainerStyle={sharedStyles.container}>
 			<StatusBar />
 			<ScrollView {...scrollPersistTaps} contentContainerStyle={sharedStyles.containerScrollView}>
 				<SafeAreaView testID='set-username-view'>
-					<Text style={[sharedStyles.loginTitle, sharedStyles.textBold, styles.loginTitle, { color: colors.titleText }]}>
+					<Text style={[sharedStyles.loginTitle, sharedStyles.textBold, styles.loginTitle, { color: colors.fontTitlesLabels }]}>
 						{I18n.t('Username')}
 					</Text>
-					<Text style={[sharedStyles.loginSubtitle, sharedStyles.textRegular, { color: colors.titleText }]}>
+					<Text style={[sharedStyles.loginSubtitle, sharedStyles.textRegular, { color: colors.fontTitlesLabels }]}>
 						{I18n.t('Set_username_subtitle')}
 					</Text>
 					<ControlledFormTextInput

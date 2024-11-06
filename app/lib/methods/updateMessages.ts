@@ -136,7 +136,19 @@ export default async function updateMessages({
 			try {
 				return message.prepareUpdate(
 					protectedFunction((m: TMessageModel) => {
+						const { attachments } = m;
+						if (newMessage && !newMessage?.blocks) {
+							newMessage.blocks = null;
+						}
+						if (newMessage && !newMessage?.md) {
+							newMessage.md = undefined;
+						}
 						Object.assign(m, newMessage);
+
+						// If image_url didn't change, keep the same attachments, trying to stick to already downloaded media inside att.title_link (starting with file://)
+						if (attachments?.[0]?.image_url === newMessage?.attachments?.[0]?.image_url) {
+							m.attachments = attachments;
+						}
 					})
 				);
 			} catch {
@@ -160,6 +172,9 @@ export default async function updateMessages({
 			try {
 				return threadMessage.prepareUpdate(
 					protectedFunction((tm: TThreadMessageModel) => {
+						if (newThreadMessage && !newThreadMessage?.blocks) {
+							newThreadMessage.blocks = null;
+						}
 						Object.assign(tm, newThreadMessage);
 						if (threadMessage.tmid) {
 							tm.rid = threadMessage.tmid;

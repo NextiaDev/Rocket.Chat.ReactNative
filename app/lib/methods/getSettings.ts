@@ -12,6 +12,7 @@ import sdk from '../services/sdk';
 import protectedFunction from './helpers/protectedFunction';
 import { parseSettings, _prepareSettings } from './parseSettings';
 import { setPresenceCap } from './getUsersPresence';
+import { compareServerVersion } from './helpers';
 
 const serverInfoKeys = [
 	'Site_Name',
@@ -21,7 +22,8 @@ const serverInfoKeys = [
 	'Force_Screen_Lock',
 	'Force_Screen_Lock_After',
 	'uniqueID',
-	'E2E_Enable'
+	'E2E_Enable',
+	'E2E_Enabled_Default_PrivateRooms'
 ];
 
 // these settings are used only on onboarding process
@@ -85,6 +87,9 @@ const serverInfoUpdate = async (serverInfo: IPreparedSettings[], iconSetting: IS
 		if (setting._id === 'E2E_Enable') {
 			return { ...allSettings, E2E_Enable: setting.valueAsBoolean };
 		}
+		if (setting._id === 'E2E_Enabled_Default_PrivateRooms') {
+			return { ...allSettings, E2E_Enabled_Default_PrivateRooms: setting.valueAsBoolean };
+		}
 		return allSettings;
 	}, {});
 
@@ -104,12 +109,14 @@ const serverInfoUpdate = async (serverInfo: IPreparedSettings[], iconSetting: IS
 	});
 };
 
-export async function getLoginSettings({ server }: { server: string }): Promise<void> {
+export async function getLoginSettings({ server, serverVersion }: { server: string; serverVersion: string }): Promise<void> {
+	const settingsParams = JSON.stringify(loginSettings);
+
+	const url = compareServerVersion(serverVersion, 'greaterThanOrEqualTo', '7.0.0')
+		? `${server}/api/v1/settings.public?_id=${loginSettings.join(',')}`
+		: `${server}/api/v1/settings.public?query={"_id":{"$in":${settingsParams}}}`;
 	try {
-		const settingsParams = JSON.stringify(loginSettings);
-		const result = await fetch(`${server}/api/v1/settings.public?query={"_id":{"$in":${settingsParams}}}`).then(response =>
-			response.json()
-		);
+		const result = await fetch(url).then(response => response.json());
 
 		if (result.success && result.settings.length) {
 			reduxStore.dispatch(clearSettings());
@@ -146,16 +153,31 @@ export async function getSettings(): Promise<void> {
 		const db = database.active;
 		const settingsParams = Object.keys(defaultSettings).filter(key => !loginSettings.includes(key));
 		// RC 0.60.0
-		const result = await fetch(
-			`${sdk.current.client.host}/api/v1/settings.public?query={"_id":{"$in":${JSON.stringify(settingsParams)}}}&count=${
-				settingsParams.length
-			}`
-		).then(response => response.json());
+		let offset = 0;
+		let remaining;
+		let settings: IData[] = [];
+		const serverVersion = reduxStore.getState().server.version;
+		const url = compareServerVersion(serverVersion, 'greaterThanOrEqualTo', '7.0.0')
+			? `${sdk.current.client.host}/api/v1/settings.public?_id=${settingsParams.join(',')}`
+			: `${sdk.current.client.host}/api/v1/settings.public?query={"_id":{"$in":${JSON.stringify(settingsParams)}}}`;
+		// Iterate over paginated results to retrieve all settings
+		do {
+			// TODO: why is no-await-in-loop enforced in the first place?
+			/* eslint-disable no-await-in-loop */
+			const response = await fetch(`${url}&offset=${offset}`);
 
-		if (!result.success) {
-			return;
-		}
-		const data: IData[] = result.settings || [];
+			const result = await response.json();
+			if (!result.success) {
+				return;
+			}
+
+			offset += result.settings.length;
+			settings = [...settings, ...result.settings];
+			remaining = result.total - settings.length;
+			/* eslint-enable no-await-in-loop */
+		} while (remaining > 0);
+
+		const data: IData[] = settings;
 		const filteredSettings: IPreparedSettings[] = _prepareSettings(data);
 		const filteredSettingsIds = filteredSettings.map(s => s._id);
 		const parsedSettings = parseSettings(filteredSettings);

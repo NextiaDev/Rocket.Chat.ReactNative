@@ -14,7 +14,7 @@ export interface IMessageAttachments {
 	isReply?: boolean;
 	showAttachment?: (file: IAttachment) => void;
 	getCustomEmoji: TGetCustomEmoji;
-	id: string;
+	author?: IUserMessage;
 }
 
 export interface IMessageAvatar {
@@ -64,6 +64,7 @@ export interface IMessageContent {
 	hasError: boolean;
 	isHeader: boolean;
 	isTranslated: boolean;
+	pinned?: boolean;
 }
 
 export interface IMessageEmoji {
@@ -90,6 +91,7 @@ export interface IMessageTouchable {
 	alias?: string;
 	role?: string;
 	drid?: string;
+	isBeingEdited?: boolean;
 }
 
 export interface IMessageRepliedThread extends Pick<IThread, 'tmid' | 'tmsg' | 'id'> {
@@ -108,6 +110,7 @@ export interface IMessageInner
 	type: MessageType;
 	blocks: [];
 	urls?: IUrl[];
+	isPreview?: boolean;
 }
 
 export interface IMessage extends IMessageRepliedThread, IMessageInner, IMessageAvatar {

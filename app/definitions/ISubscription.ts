@@ -46,6 +46,7 @@ export interface ISubscription {
 	ls: Date;
 	name: string;
 	fname?: string;
+	sanitizedFname?: string;
 	rid: string; // the same as id
 	open: boolean;
 	alert: boolean;
@@ -71,6 +72,7 @@ export interface ISubscription {
 	archived: boolean;
 	joinCodeRequired?: boolean;
 	muted?: string[];
+	unmuted?: string[];
 	ignored?: string[];
 	broadcast?: boolean;
 	prid?: string;
@@ -91,7 +93,7 @@ export interface ISubscription {
 	livechatData?: any;
 	tags?: string[];
 	E2EKey?: string;
-	E2ESuggestedKey?: string;
+	E2ESuggestedKey?: string | null;
 	encrypted?: boolean;
 	e2eKeyId?: string;
 	avatarETag?: string;
@@ -108,9 +110,13 @@ export interface ISubscription {
 	threads: RelationModified<TThreadModel>;
 	threadMessages: RelationModified<TThreadMessageModel>;
 	uploads: RelationModified<TUploadModel>;
+	disableNotifications?: boolean;
 }
 
-export type TSubscriptionModel = ISubscription & Model;
+export type TSubscriptionModel = ISubscription &
+	Model & {
+		asPlain: () => ISubscription;
+	};
 export type TSubscription = TSubscriptionModel | ISubscription;
 
 // https://github.com/RocketChat/Rocket.Chat/blob/a88a96fcadd925b678ff27ada37075e029f78b5e/definition/ISubscription.ts#L8
@@ -147,7 +153,7 @@ export interface IServerSubscription extends IRocketChatRecord {
 	onHold?: boolean;
 	encrypted?: boolean;
 	E2EKey?: string;
-	E2ESuggestedKey?: string;
+	E2ESuggestedKey?: string | null;
 	unreadAlert?: 'default' | 'all' | 'mentions' | 'nothing';
 
 	fname?: unknown;

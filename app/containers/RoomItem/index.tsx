@@ -1,14 +1,11 @@
 import React, { useEffect, useReducer, useRef } from 'react';
 import { Subscription } from 'rxjs';
 
-import I18n from '../../i18n';
-import { getUserPresence } from '../../lib/methods';
 import { isGroupChat } from '../../lib/methods/helpers';
 import { formatDate } from '../../lib/methods/helpers/room';
 import { IRoomItemContainerProps } from './interfaces';
 import RoomItem from './RoomItem';
 import { ROW_HEIGHT, ROW_HEIGHT_CONDENSED } from './styles';
-import { useUserStatus } from './useUserStatus';
 
 export { ROW_HEIGHT, ROW_HEIGHT_CONDENSED };
 
@@ -44,8 +41,7 @@ const RoomItemContainer = React.memo(
 		const alert = item.alert || item.tunread?.length;
 		const [_, forceUpdate] = useReducer(x => x + 1, 1);
 		const roomSubscription = useRef<Subscription | null>(null);
-
-		const { connected, status } = useUserStatus(item.t, item?.visitor?.status, id);
+		const userId = item.t === 'd' && id && !isGroupChat(item) ? id : null;
 
 		useEffect(() => {
 			const init = () => {
@@ -61,29 +57,9 @@ const RoomItemContainer = React.memo(
 			return () => roomSubscription.current?.unsubscribe();
 		}, []);
 
-		useEffect(() => {
-			const isDirect = !!(item.t === 'd' && id && !isGroupChat(item));
-			if (connected && isDirect) {
-				getUserPresence(id);
-			}
-		}, [connected]);
-
 		const handleOnPress = () => onPress(item);
 
 		const handleOnLongPress = () => onLongPress && onLongPress(item);
-
-		let accessibilityLabel = '';
-		if (item.unread === 1) {
-			accessibilityLabel = `, ${item.unread} ${I18n.t('alert')}`;
-		} else if (item.unread > 1) {
-			accessibilityLabel = `, ${item.unread} ${I18n.t('alerts')}`;
-		}
-		if (item.userMentions > 0) {
-			accessibilityLabel = `, ${I18n.t('you_were_mentioned')}`;
-		}
-		if (date) {
-			accessibilityLabel = `, ${I18n.t('last_message')} ${date}`;
-		}
 
 		return (
 			<RoomItem
@@ -94,10 +70,10 @@ const RoomItemContainer = React.memo(
 				onPress={handleOnPress}
 				onLongPress={handleOnLongPress}
 				date={date}
-				accessibilityLabel={accessibilityLabel}
 				width={width}
 				favorite={item.f}
 				rid={item.rid}
+				userId={userId}
 				toggleFav={toggleFav}
 				toggleRead={toggleRead}
 				hideChannel={hideChannel}
@@ -105,7 +81,6 @@ const RoomItemContainer = React.memo(
 				type={item.t}
 				isFocused={isFocused}
 				prid={item.prid}
-				status={status}
 				hideUnreadStatus={item.hideUnreadStatus}
 				hideMentionStatus={item.hideMentionStatus}
 				alert={alert}
@@ -124,7 +99,8 @@ const RoomItemContainer = React.memo(
 				autoJoin={autoJoin}
 				showAvatar={showAvatar}
 				displayMode={displayMode}
-				sourceType={item.source}
+				status={item.t === 'l' ? item?.visitor?.status : null}
+				sourceType={item.t === 'l' ? item.source : null}
 			/>
 		);
 	},

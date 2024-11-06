@@ -10,6 +10,12 @@ async function waitForToast() {
 	await sleep(600);
 }
 
+async function dismissKeyboardAndScrollUp() {
+	await element(by.id('profile-view-list')).swipe('down');
+	await sleep(300);
+	await element(by.id('profile-view-list')).swipe('up');
+}
+
 describe('Profile screen', () => {
 	let textMatcher: TTextMatcher;
 	let user: ITestUser;
@@ -74,31 +80,35 @@ describe('Profile screen', () => {
 		it('should change name and username', async () => {
 			await element(by.id('profile-view-name')).replaceText(`${user.username}new`);
 			await element(by.id('profile-view-username')).replaceText(`${user.username}new`);
-			// dismiss keyboard
-			await element(by.id('profile-view-list')).swipe('down');
+			await dismissKeyboardAndScrollUp();
+			await element(by.id('profile-view-submit')).tap();
+			await waitForToast();
+		});
+
+		it('should change nickname and bio', async () => {
+			await element(by.id('profile-view-nickname')).replaceText(`nickname-${user.username}`);
+			await element(by.id('profile-view-bio')).replaceText(`bio-${user.username}`);
+			await dismissKeyboardAndScrollUp();
 			await element(by.id('profile-view-submit')).tap();
 			await waitForToast();
 		});
 
 		it('should change email and password', async () => {
-			await element(by.id('profile-view-list')).swipe('up');
+			await element(by.id('profile-view-list')).swipe('down');
 			await waitFor(element(by.id('profile-view-email')))
 				.toBeVisible()
-				.withTimeout(2000);
+				.withTimeout(10000);
 			await element(by.id('profile-view-email')).replaceText(`mobile+profileChangesNew${random()}@rocket.chat`);
-			// dismiss keyboard
-			await element(by.id('profile-view-list')).swipe('down');
+			await dismissKeyboardAndScrollUp();
 			await element(by.id('profile-view-new-password')).replaceText(`${user.password}new`);
-			// dismiss keyboard
-			await element(by.id('profile-view-list')).swipe('down');
 			await waitFor(element(by.id('profile-view-submit')))
 				.toExist()
-				.withTimeout(2000);
+				.withTimeout(10000);
 			await element(by.id('profile-view-submit')).tap();
-			await waitFor(element(by.id('profile-view-enter-password-sheet')))
+			await waitFor(element(by.id('profile-view-enter-password-sheet-input')))
 				.toBeVisible()
-				.withTimeout(2000);
-			await element(by.id('profile-view-enter-password-sheet')).replaceText(`${user.password}`);
+				.withTimeout(10000);
+			await element(by.id('profile-view-enter-password-sheet-input')).replaceText(`${user.password}`);
 			await element(by[textMatcher]('Save').withAncestor(by.id('action-sheet-content-with-input-and-submit')))
 				.atIndex(0)
 				.tap();

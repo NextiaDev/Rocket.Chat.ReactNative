@@ -2,10 +2,7 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { Strike as StrikeProps } from '@rocket.chat/message-parser';
 
-import Bold from './Bold';
-import Italic from './Italic';
-import Plain from './Plain';
-import Link from './Link';
+import { Bold, Italic, Plain, Link } from './components';
 
 interface IStrikeProps {
 	value: StrikeProps['value'];
@@ -29,6 +26,8 @@ const Strike = ({ value }: IStrikeProps) => (
 					return <Bold value={block.value} />;
 				case 'ITALIC':
 					return <Italic value={block.value} />;
+				case 'MENTION_CHANNEL':
+					return <Plain value={`#${block.value.value}`} />;
 				default:
 					return null;
 			}

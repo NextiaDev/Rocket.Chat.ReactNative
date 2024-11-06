@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { BorderlessButton } from 'react-native-gesture-handler';
 
 import { themes } from '../../../lib/constants';
 import { CustomIcon } from '../../../containers/CustomIcon';
@@ -36,18 +35,23 @@ interface IItem {
 }
 
 const Item = ({ item, theme, onPress, onDelete }: IItem): JSX.Element => (
-	<Touch style={styles.container} onPress={() => onPress(item.url)} testID={`server-history-${item.url}`}>
-		<View style={styles.content}>
-			<Text numberOfLines={1} style={[styles.server, { color: themes[theme].bodyText }]}>
+	<Touch
+		style={styles.container}
+		onPress={() => onPress(item.url)}
+		testID={`server-history-${item.url}`}
+		accessible
+		accessibilityLabel={`${item.url} ${item.username}`}>
+		<View style={styles.content} accessible={false} accessibilityElementsHidden>
+			<Text numberOfLines={1} style={[styles.server, { color: themes[theme].fontDefault }]}>
 				{item.url}
 			</Text>
-			<Text numberOfLines={1} style={{ color: themes[theme].auxiliaryText }}>
+			<Text numberOfLines={1} style={{ color: themes[theme].fontSecondaryInfo }}>
 				{item.username}
 			</Text>
 		</View>
-		<BorderlessButton onPress={() => onDelete(item)} testID={`server-history-delete-${item.url}`}>
-			<CustomIcon name='delete' size={24} color={themes[theme].auxiliaryText} />
-		</BorderlessButton>
+		<Touch onPress={() => onDelete(item)} testID={`server-history-delete-${item.url}`}>
+			<CustomIcon name='delete' size={24} color={themes[theme].fontSecondaryInfo} />
+		</Touch>
 	</Touch>
 );
 

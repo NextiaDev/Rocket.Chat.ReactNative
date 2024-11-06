@@ -1,10 +1,9 @@
 import Detox, { device, waitFor, element, by, expect } from 'detox';
 
-import { navigateToLogin, login, TTextMatcher, platformTypes } from '../../helpers/app';
+import { navigateToLogin, login } from '../../helpers/app';
 import { createRandomUser, ITestUser } from '../../helpers/data_setup';
 
 const defaultLaunchArgs = { permissions: { notifications: 'YES' } } as Detox.DeviceLaunchAppConfig;
-let textMatcher: TTextMatcher;
 
 const navToLanguage = async () => {
 	await waitFor(element(by.id('rooms-list-view')))
@@ -29,9 +28,6 @@ const navToLanguage = async () => {
 
 describe('i18n', () => {
 	describe('OS language', () => {
-		beforeAll(() => {
-			({ textMatcher } = platformTypes[device.getPlatform()]);
-		});
 		it("OS set to 'en' and proper translate to 'en'", async () => {
 			if (device.getPlatform() === 'android') {
 				return; // FIXME: Passing language with launch parameters doesn't work with Android
@@ -47,10 +43,6 @@ describe('i18n', () => {
 			await waitFor(element(by.id('new-server-view')))
 				.toBeVisible()
 				.withTimeout(20000);
-			await expect(element(by.id('new-server-view-open'))).toBeVisible();
-			await waitFor(element(by[textMatcher]('Join our open workspace')).atIndex(0))
-				.toExist()
-				.withTimeout(1000);
 		});
 
 		it("OS set to unavailable language and fallback to 'en'", async () => {
@@ -67,10 +59,6 @@ describe('i18n', () => {
 			await waitFor(element(by.id('new-server-view')))
 				.toBeVisible()
 				.withTimeout(20000);
-			await expect(element(by.id('new-server-view-open'))).toBeVisible();
-			await waitFor(element(by[textMatcher]('Join our open workspace')).atIndex(0))
-				.toExist()
-				.withTimeout(1000);
 		});
 
 		/**

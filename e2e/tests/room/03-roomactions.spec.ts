@@ -194,7 +194,10 @@ describe('Room actions screen', () => {
 
 				// Pin the message
 				await pinMessage(messageToPin);
-
+				// verify pin icon
+				await waitFor(element(by.id(`${messageToPin}-pinned`)))
+					.toExist()
+					.withTimeout(6000);
 				// Back into Room Actions
 				await element(by.id('room-header')).tap();
 				await waitFor(element(by.id('room-actions-view')))
@@ -218,6 +221,10 @@ describe('Room actions screen', () => {
 				await element(by[textMatcher]('Unpin')).atIndex(0).tap();
 
 				await waitFor(element(by[textMatcher](messageToPin).withAncestor(by.id('pinned-messages-view'))))
+					.not.toExist()
+					.withTimeout(6000);
+				// verify pin icon
+				await waitFor(element(by.id(`${messageToPin}-pinned`)))
 					.not.toExist()
 					.withTimeout(6000);
 				await backToActions();
@@ -349,6 +356,7 @@ describe('Room actions screen', () => {
 					await waitFor(element(by.id('room-actions-members')))
 						.toExist()
 						.withTimeout(2000);
+					await sleep(300); // wait for animation
 					await tapAndWaitFor(element(by.id('room-actions-members')), element(by.id('room-members-view')), 2000);
 				});
 
@@ -503,24 +511,24 @@ describe('Room actions screen', () => {
 
 				it('should set/remove as mute', async () => {
 					await openActionSheet(otherUser.username);
-					await element(by[textMatcher]('Mute')).atIndex(0).tap();
+					await element(by[textMatcher]('Disable writing in room')).atIndex(0).tap();
 					await waitFor(element(by[textMatcher]('Are you sure?')))
 						.toExist()
 						.withTimeout(5000);
-					await element(by[textMatcher]('Mute').and(by.type(alertButtonType))).tap();
+					await element(by[textMatcher]('Disable writing in room').and(by.type(alertButtonType))).tap();
 					await waitForToast();
 
 					await openActionSheet(otherUser.username);
-					await element(by[textMatcher]('Unmute')).atIndex(0).tap();
+					await element(by[textMatcher]('Enable writing in room')).atIndex(0).tap();
 					await waitFor(element(by[textMatcher]('Are you sure?')))
 						.toExist()
 						.withTimeout(5000);
-					await element(by[textMatcher]('Unmute').and(by.type(alertButtonType))).tap();
+					await element(by[textMatcher]('Enable writing in room').and(by.type(alertButtonType))).tap();
 					await waitForToast();
 
 					await openActionSheet(otherUser.username);
 					// Tests if Remove as mute worked
-					await waitFor(element(by[textMatcher]('Mute')))
+					await waitFor(element(by[textMatcher]('Disable writing in room')))
 						.toExist()
 						.withTimeout(5000);
 					await closeActionSheet();

@@ -102,7 +102,6 @@ export default StyleSheet.create({
 		width: '100%',
 		minHeight: isTablet ? 300 : 200,
 		borderRadius: 4,
-		borderWidth: 1,
 		overflow: 'hidden'
 	},
 	imagePressed: {
@@ -168,5 +167,18 @@ export default StyleSheet.create({
 	threadDetails: {
 		flex: 1,
 		marginLeft: 12
+	},
+	blurView: {
+		position: 'absolute',
+		borderWidth: 0,
+		top: 0,
+		left: 0,
+		bottom: 0,
+		right: 0
+	},
+	blurIndicator: {
+		position: 'absolute',
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });

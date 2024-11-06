@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, Switch, Text, View, SwitchProps } from 'react-native';
+import { StyleSheet, Text, View, SwitchProps, Pressable } from 'react-native';
 
 import I18n from '../../../i18n';
-import { SWITCH_TRACK_COLOR } from '../../../lib/constants';
 import { useTheme } from '../../../theme';
 import sharedStyles from '../../Styles';
+import Switch from '../../../containers/Switch';
 
 const styles = StyleSheet.create({
 	switchContainer: {
@@ -40,20 +40,21 @@ export const SwitchItem = ({ id, value, label, hint, onValueChange, disabled = f
 	const { colors } = useTheme();
 
 	return (
-		<View style={[styles.switchContainer, { backgroundColor: colors.backgroundColor }]}>
-			<View style={styles.switchTextContainer}>
-				<Text style={[styles.label, { color: colors.titleText }]}>{I18n.t(label)}</Text>
-				<Text testID={`create-channel-${id}-hint`} style={[styles.hint, { color: colors.auxiliaryText }]}>
-					{I18n.t(hint)}
-				</Text>
+		<Pressable
+			disabled={disabled}
+			onPress={() => onValueChange(!value)}
+			accessible
+			accessibilityLabel={`${I18n.t(label)}, ${value ? I18n.t('Enabled') : I18n.t('Disabled')}, ${I18n.t(hint)}`}
+			accessibilityRole='switch'>
+			<View style={[styles.switchContainer, { backgroundColor: colors.surfaceRoom }]}>
+				<View style={styles.switchTextContainer}>
+					<Text style={[styles.label, { color: colors.fontTitlesLabels }]}>{I18n.t(label)}</Text>
+					<Text testID={`create-channel-${id}-hint`} style={[styles.hint, { color: colors.fontSecondaryInfo }]}>
+						{I18n.t(hint)}
+					</Text>
+				</View>
+				<Switch value={value} onValueChange={onValueChange} testID={`create-channel-${id}`} disabled={disabled} />
 			</View>
-			<Switch
-				value={value}
-				onValueChange={onValueChange}
-				testID={`create-channel-${id}`}
-				trackColor={SWITCH_TRACK_COLOR}
-				disabled={disabled}
-			/>
-		</View>
+		</Pressable>
 	);
 };
